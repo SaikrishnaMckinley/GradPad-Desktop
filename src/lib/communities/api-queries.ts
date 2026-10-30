@@ -18,6 +18,7 @@ import {
   type ApiCommunityRecord,
 } from "@/lib/api/map-community";
 import { unwrapList } from "@/lib/api/parse-list";
+import { parseEventStartIso } from "@/lib/events/format-event-datetime";
 import { mapPostsResponse } from "@/lib/posts/map-post";
 import type { CommunityDetail, CommunityListItem, CommunityMemberRow } from "@/types/community";
 
@@ -129,27 +130,62 @@ export async function getCommunityChannels(communityId: string) {
 type ApiEvent = {
   id: string;
   title?: string;
+  name?: string;
   start_at?: string;
+  start_date?: string;
   start_time?: string;
-  location?: string | null;
+  end_date?: string;
+  end_time?: string;
+  location?: string | null | Record<string, unknown>;
+  address?: string | null | Record<string, unknown>;
   event_type?: string | null;
+  description?: string | null;
+  comment?: string | null;
 };
+
+function eventLocationLabel(raw: ApiEvent["location"] | ApiEvent["address"]): string | null {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    const t = raw.trim();
+    return t.length > 0 ? t : null;
+  }
+  if (typeof raw === "object") {
+    const obj = raw as Record<string, unknown>;
+    const parts = [obj.name, obj.city, obj.state, obj.formatted_address, obj.address]
+      .filter((p) => typeof p === "string" && p.trim().length > 0)
+      .map((p) => (p as string).trim());
+    return parts.length > 0 ? parts.join(", ") : null;
+  }
+  return null;
+}
 
 export async function getCommunityEventsPreview(communityId: string, limit = 4) {
   const result = await fetchCommunityUpcomingEventsRaw(communityId);
   if (!result.ok || !result.data) return [];
   return unwrapList(result.data)
-    .slice(0, limit)
     .map((row) => {
       const event = row as ApiEvent;
+      const start_at =
+        parseEventStartIso({
+          start_at: event.start_at,
+          start_date: event.start_date,
+          start_time: event.start_time,
+        }) ?? "";
+      const rawDescription = event.description ?? event.comment ?? null;
       return {
         id: event.id,
-        title: event.title ?? "Event",
-        start_at: event.start_at ?? event.start_time ?? new Date().toISOString(),
-        location: event.location ?? null,
+        title: event.title ?? event.name ?? "Event",
+        start_at,
+        location: eventLocationLabel(event.location) ?? eventLocationLabel(event.address),
         event_type: event.event_type ?? null,
+        description:
+          typeof rawDescription === "string"
+            ? rawDescription.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+            : null,
       };
-    });
+    })
+    .filter((event) => event.start_at.length > 0)
+    .slice(0, limit);
 }
 
 export async function getCommunityPostsPreview(communityId: string, limit = 5) {

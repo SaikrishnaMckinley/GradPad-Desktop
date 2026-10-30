@@ -140,7 +140,7 @@ function mapSinglePost(row: unknown, fallbackCommunityName?: string | null): Fee
     content,
     authorName,
     authorAvatarUrl,
-    createdAt: post.created_at ?? new Date().toISOString(),
+    createdAt: post.created_at ?? "",
     communityName: nameFromRelation(post.community) ?? fallbackCommunityName ?? null,
     channelName: postType === "channel" ? channelName : null,
     postType,

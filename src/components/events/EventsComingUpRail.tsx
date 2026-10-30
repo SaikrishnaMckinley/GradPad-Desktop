@@ -1,31 +1,54 @@
 import { Card } from "@/components/ui/card";
+import {
+  formatEventCard,
+  formatEventMonthHeading,
+} from "@/lib/events/format-event-datetime";
+import type { EventRailItem } from "@/types/events";
 
-const ITEMS = [
-  { d: "09", t: "Social Circles Collaboration", m: "4:00 PM · Sawubona" },
-  { d: "11", t: "Chapter Office Hours", m: "12:30 PM · Online" },
-  { d: "14", t: "New Grad Coffee Chat", m: "10:30 AM · Westwood" },
+const DEMO_ITEMS = [
+  { id: "d1", title: "Social Circles Collaboration", startAt: "2024-03-09T16:00:00" },
+  { id: "d2", title: "Chapter Office Hours", startAt: "2024-03-11T12:30:00" },
+  { id: "d3", title: "New Grad Coffee Chat", startAt: "2024-03-14T10:30:00" },
 ] as const;
 
-export function EventsComingUpRail() {
+type Props = {
+  events?: EventRailItem[];
+};
+
+export function EventsComingUpRail({ events }: Props) {
+  const isLive = events !== undefined;
+  const items = isLive ? events : DEMO_ITEMS;
+  const heading =
+    isLive && events.length > 0
+      ? formatEventMonthHeading(events[0].startAt)
+      : isLive
+        ? "Upcoming"
+        : "March 2024";
+
   return (
     <Card className="p-5 shadow-card">
-      <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-        March 2024
-      </p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-primary">{heading}</p>
       <h2 className="mt-1 text-lg font-semibold">Coming up this week</h2>
-      <ul className="mt-4 divide-y divide-border">
-        {ITEMS.map((e) => (
-          <li key={e.d} className="flex gap-3 py-4 first:pt-0 last:pb-0">
-            <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl border border-primary-border bg-primary-light text-sm font-bold text-primary">
-              {e.d}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold">{e.t}</p>
-              <p className="text-xs text-muted-foreground">{e.m}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {isLive && events.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">No upcoming events this week.</p>
+      ) : (
+        <ul className="mt-4 divide-y divide-border">
+          {items.map((e) => {
+            const { day, time } = formatEventCard(e.startAt);
+            return (
+              <li key={e.id} className="flex gap-3 py-4 first:pt-0 last:pb-0">
+                <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl border border-primary-border bg-primary-light text-sm font-bold text-primary">
+                  {day}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">{e.title}</p>
+                  <p className="text-xs text-muted-foreground">{time}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </Card>
   );
 }

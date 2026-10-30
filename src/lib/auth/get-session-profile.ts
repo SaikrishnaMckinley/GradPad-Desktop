@@ -3,6 +3,7 @@ import { getApiSessionProfile } from "@/lib/auth/get-api-session-profile";
 export type SessionProfile = {
   id: string;
   fullName: string;
+  email: string | null;
   username: string | null;
   headline: string | null;
   avatarUrl: string | null;

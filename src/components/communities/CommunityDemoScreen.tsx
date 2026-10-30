@@ -67,7 +67,7 @@ export function CommunityDemoScreen({ slug = DEV_ACTIVE_COMMUNITY.slug }: Props)
             content:
               "Excited to share our latest alumni initiative — join us in the General channel for updates.",
             authorName: "Peter Jackson",
-            createdAt: new Date().toISOString(),
+            createdAt: "2026-05-01T14:00:00",
           },
         ]}
         membersPreview={[

@@ -34,12 +34,21 @@ async function refreshAccessToken(refresh: string): Promise<string | null> {
   }
 }
 
+type ServerFetchOptions = {
+  /** Use when the caller runs inside `"use cache"` / `"use cache: private"`. */
+  cacheable?: boolean;
+};
+
 async function authorizedFetch(
   path: string,
   init: RequestInit,
   access: string,
+  cacheable: boolean,
 ): Promise<Response> {
   const url = path.startsWith("http") ? path : `${API_BASE_URL}${path.replace(/^\//, "")}`;
+  const method = (init.method ?? "GET").toUpperCase();
+  const allowFetchCache = cacheable && method === "GET";
+
   return fetch(url, {
     ...init,
     headers: {
@@ -50,7 +59,7 @@ async function authorizedFetch(
       ...init.headers,
       Authorization: `Bearer ${access}`,
     },
-    cache: "no-store",
+    ...(allowFetchCache ? {} : { cache: "no-store" as const }),
   });
 }
 
@@ -60,20 +69,22 @@ async function authorizedFetch(
 export async function serverFetchJson<T = unknown>(
   path: string,
   init: RequestInit = {},
+  options: ServerFetchOptions = {},
 ): Promise<ServerFetchResult<T>> {
   let { access, refresh } = await getSessionTokens();
   if (!access) {
     return { data: null, status: 401, ok: false };
   }
 
-  let response = await authorizedFetch(path, init, access);
+  const cacheable = options.cacheable ?? false;
+  let response = await authorizedFetch(path, init, access, cacheable);
 
   if (response.status === 401 && refresh) {
     const nextAccess = await refreshAccessToken(refresh);
     if (nextAccess) {
       await setSessionTokens(nextAccess, refresh);
       access = nextAccess;
-      response = await authorizedFetch(path, init, access);
+      response = await authorizedFetch(path, init, access, cacheable);
     } else {
       await clearSessionTokens();
       return { data: null, status: 401, ok: false };

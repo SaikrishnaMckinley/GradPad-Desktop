@@ -5,12 +5,14 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useShellData } from "@/components/layout/ShellDataProvider";
+import { formatEventCard } from "@/lib/events/format-event-datetime";
 import { cn } from "@/lib/utils/cn";
+import type { EventRailItem } from "@/types/events";
 
-const UPCOMING = [
-  { day: "09", month: "Mar", title: "Social Circles Collaboration", time: "4:00 PM" },
-  { day: "14", month: "Mar", title: "Social Circles Collaboration", time: "4:00 PM" },
-] as const;
+const DEMO_UPCOMING = [
+  { id: "d1", title: "Social Circles Collaboration", startAt: "2024-03-09T16:00:00" },
+  { id: "d2", title: "Social Circles Collaboration", startAt: "2024-03-14T16:00:00" },
+] as const satisfies readonly EventRailItem[];
 
 const SUGGESTIONS = [
   { name: "Ema Watson", detail: "UCLA · Class of 2020" },
@@ -21,8 +23,15 @@ const SUGGESTIONS = [
 const railHeader = "px-5 pb-0 pt-5";
 const railBody = "space-y-5 px-5 pb-6 pt-5";
 
-export function HomeRightSidebar() {
+type Props = {
+  upcomingEvents?: EventRailItem[];
+};
+
+export function HomeRightSidebar({ upcomingEvents }: Props) {
   const { shellUser, communityContext } = useShellData();
+  const isLiveEvents = upcomingEvents !== undefined;
+  const eventItems = isLiveEvents ? upcomingEvents : DEMO_UPCOMING;
+  const showLiveEmpty = isLiveEvents && upcomingEvents.length === 0;
   const communityCount = communityContext.memberships.length;
   const profileHref = shellUser.username
     ? `/profile/${shellUser.username}`
@@ -74,22 +83,29 @@ export function HomeRightSidebar() {
           </Link>
         </CardHeader>
         <CardContent className={railBody}>
-          {UPCOMING.map((event) => (
-            <div key={`${event.day}-${event.title}`} className="flex gap-3 py-0.5">
-              <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg border border-primary-border bg-primary-light text-primary">
-                <span className="text-[10px] font-bold uppercase leading-none">{event.day}</span>
-                <span className="mt-0.5 text-[10px] font-semibold uppercase leading-none">
-                  {event.month}
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-semibold leading-snug line-clamp-2">
-                  {event.title}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{event.time}</p>
-              </div>
-            </div>
-          ))}
+          {showLiveEmpty ? (
+            <p className="text-sm text-muted-foreground">No upcoming events.</p>
+          ) : (
+            eventItems.map((event) => {
+              const { day, month, time } = formatEventCard(event.startAt);
+              return (
+                <div key={event.id} className="flex gap-3 py-0.5">
+                  <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg border border-primary-border bg-primary-light text-primary">
+                    <span className="text-[10px] font-bold uppercase leading-none">{day}</span>
+                    <span className="mt-0.5 text-[10px] font-semibold uppercase leading-none">
+                      {month}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-semibold leading-snug line-clamp-2">
+                      {event.title}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{time}</p>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </CardContent>
       </Card>
 

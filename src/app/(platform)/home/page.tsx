@@ -5,6 +5,7 @@ import { HomeRightSidebar } from "@/components/home/HomeRightSidebar";
 import { PostCard } from "@/components/home/PostCard";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { isDemoStaticUi } from "@/lib/demo-mode";
+import { getUpcomingEventsPreview } from "@/lib/events/queries";
 import { loadHomeFeed } from "@/lib/posts/load-home-feed";
 
 export const metadata = {
@@ -30,10 +31,13 @@ export default async function HomePage({ searchParams }: Props) {
     );
   }
 
-  const feed = await loadHomeFeed(typeof community === "string" ? community : null);
+  const [feed, upcomingEvents] = await Promise.all([
+    loadHomeFeed(typeof community === "string" ? community : null),
+    getUpcomingEventsPreview(2),
+  ]);
 
   return (
-    <PageContainer withRightRail rightRail={<HomeRightSidebar />}>
+    <PageContainer withRightRail rightRail={<HomeRightSidebar upcomingEvents={upcomingEvents} />}>
       <HomeFeedClient initial={feed} />
     </PageContainer>
   );

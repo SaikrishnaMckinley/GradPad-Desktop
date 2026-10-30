@@ -25,6 +25,16 @@ const nextConfig: NextConfig = {
         hostname: "**.amazonaws.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "api-staging.gradpad.io",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "app.gradpad.io",
+        pathname: "/**",
+      },
     ],
   },
   cacheComponents: true,

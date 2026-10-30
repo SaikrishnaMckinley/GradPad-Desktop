@@ -1,5 +1,8 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { serverFetchJson } from "@/lib/api/server-fetch";
 import type { SessionProfile } from "@/lib/auth/get-session-profile";
+
+export const SESSION_PROFILE_CACHE_TAG = "gradpad-session-profile";
 
 type ApiUserDetail = {
   id: string;
@@ -12,8 +15,16 @@ type ApiUserDetail = {
 };
 
 export async function getApiSessionProfile(): Promise<SessionProfile | null> {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag(SESSION_PROFILE_CACHE_TAG);
+
   try {
-    const { ok, data } = await serverFetchJson<ApiUserDetail>("users/detail/");
+    const { ok, data } = await serverFetchJson<ApiUserDetail>(
+      "users/detail/",
+      {},
+      { cacheable: true },
+    );
     if (!ok || !data) return null;
     const fullName =
       [data.first_name, data.last_name].filter(Boolean).join(" ").trim() ||
@@ -24,6 +35,7 @@ export async function getApiSessionProfile(): Promise<SessionProfile | null> {
     return {
       id: String(data.id),
       fullName,
+      email: data.email?.trim() || null,
       username: data.nickname?.trim() || null,
       headline: data.short_bio?.trim() || null,
       avatarUrl: data.photo ?? null,

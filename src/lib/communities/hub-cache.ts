@@ -15,6 +15,7 @@ export type CommunityHubPayload = {
     start_at: string;
     location?: string | null;
     event_type?: string | null;
+    description?: string | null;
   }[];
   posts: {
     id: string;

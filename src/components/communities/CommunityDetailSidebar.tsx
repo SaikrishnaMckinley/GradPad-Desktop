@@ -4,14 +4,18 @@ import { CommunityMark } from "@/components/layout/CommunityMark";
 import { Avatar } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { communityAccentColor, communityInitials } from "@/lib/communities/slug";
+import { formatEventUpcomingLine } from "@/lib/events/format-event-datetime";
 import type { CommunityListItem } from "@/types/community";
 import type { ShellUser } from "@/types/shell-user";
 
-const QUICK_ACTIONS = [
-  { label: "Create a post", href: "/create" },
-  { label: "Create an event", href: "/events" },
-  { label: "Create a community", href: "/create?tab=community" },
-] as const;
+function quickActions(communityId: string) {
+  const q = encodeURIComponent(communityId);
+  return [
+    { label: "Create a post", href: `/create?tab=post&community=${q}` },
+    { label: "Create an event", href: `/create?tab=event&community=${q}` },
+    { label: "Create a community", href: "/create?tab=community" },
+  ] as const;
+}
 
 type EventRow = {
   id: string;
@@ -21,6 +25,7 @@ type EventRow = {
 
 type Props = {
   user: ShellUser;
+  communityId?: string;
   memberships: CommunityListItem[];
   upcomingEvents: EventRow[];
 };
@@ -32,18 +37,14 @@ function membershipLabel(c: CommunityListItem): string {
   return "Member";
 }
 
-function formatUpcoming(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
+export function CommunityDetailSidebar({
+  user,
+  communityId,
+  memberships,
+  upcomingEvents,
+}: Props) {
+  const actions = communityId ? quickActions(communityId) : quickActions("");
 
-export function CommunityDetailSidebar({ user, memberships, upcomingEvents }: Props) {
   return (
     <div className="relative space-y-5 pb-14">
       <Card className="shadow-card">
@@ -99,7 +100,7 @@ export function CommunityDetailSidebar({ user, memberships, upcomingEvents }: Pr
           </p>
         </CardHeader>
         <CardContent className="space-y-1 pt-0">
-          {QUICK_ACTIONS.map(({ label, href }) => (
+          {actions.map(({ label, href }) => (
             <Link
               key={label}
               href={href}
@@ -125,10 +126,17 @@ export function CommunityDetailSidebar({ user, memberships, upcomingEvents }: Pr
             <p className="text-sm text-muted-foreground">No upcoming events yet.</p>
           ) : (
             upcomingEvents.slice(0, 3).map((event) => (
-              <div key={event.id}>
+              <Link
+                key={event.id}
+                href={`/events/${event.id}`}
+                prefetch
+                className="block hover:opacity-90"
+              >
                 <p className="text-sm font-semibold">{event.title}</p>
-                <p className="text-xs text-muted-foreground">{formatUpcoming(event.start_at)}</p>
-              </div>
+                <p className="text-xs text-muted-foreground">
+                  {formatEventUpcomingLine(event.start_at)}
+                </p>
+              </Link>
             ))
           )}
           <Link

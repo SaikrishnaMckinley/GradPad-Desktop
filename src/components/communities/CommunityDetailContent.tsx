@@ -11,6 +11,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { communityAccentColor, communityInitials } from "@/lib/communities/slug";
+import { formatEventCard } from "@/lib/events/format-event-datetime";
 import type { CommunityDetail } from "@/types/community";
 import type { PostCommentRow } from "@/lib/posts/map-post";
 import { cn } from "@/lib/utils/cn";
@@ -28,7 +29,15 @@ export type CommunityEventRow = {
   start_at: string;
   location?: string | null;
   event_type?: string | null;
+  description?: string | null;
 };
+
+function eventFormatLabel(event: CommunityEventRow): string {
+  const type = event.event_type?.trim();
+  if (type) return type.replace(/_/g, " ").toUpperCase();
+  if (event.location) return "IN PERSON";
+  return "EVENT";
+}
 
 export type CommunityPostRow = {
   id: string;
@@ -62,15 +71,6 @@ type Props = {
   isMember: boolean;
   useFixtureCover?: boolean;
 };
-
-function formatEventCard(iso: string) {
-  const d = new Date(iso);
-  return {
-    day: d.toLocaleDateString("en-US", { day: "2-digit" }),
-    month: d.toLocaleDateString("en-US", { month: "short" }),
-    time: d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
-  };
-}
 
 export function CommunityDetailContent({
   community,
@@ -249,13 +249,15 @@ export function CommunityDetailContent({
             <h2 className="text-lg font-semibold">Events</h2>
             <p className="text-sm text-muted-foreground">Gather with people from this community</p>
           </div>
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
-            aria-label="Add event"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
+          {canManage ? (
+            <Link
+              href={`/create?tab=event&community=${encodeURIComponent(community.id)}`}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
+              aria-label="Create event"
+            >
+              <Plus className="h-4 w-4" />
+            </Link>
+          ) : null}
         </div>
         {!isMember ? (
           <Card className="p-5 text-sm text-muted-foreground shadow-card">
@@ -267,24 +269,43 @@ export function CommunityDetailContent({
           <div className="flex gap-4 overflow-x-auto pb-1">
             {events.map((event) => {
               const { day, month, time } = formatEventCard(event.start_at);
+              const formatLabel = eventFormatLabel(event);
               return (
                 <Card
                   key={event.id}
-                  className="flex min-w-[min(100%,280px)] shrink-0 gap-4 p-4 shadow-card sm:min-w-[300px]"
+                  className="flex min-w-[min(100%,300px)] max-w-[320px] shrink-0 flex-col gap-4 rounded-2xl border border-border p-5 shadow-card"
                 >
-                  <div className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-2xl border border-border bg-page-secondary">
-                    <span className="text-xl font-bold leading-none">{day}</span>
-                    <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {month}
-                    </span>
+                  <div className="flex gap-4">
+                    <div className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-2xl border border-border bg-page-secondary">
+                      <span className="text-xl font-bold leading-none text-foreground">{day}</span>
+                      <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {month}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                        {time} · {formatLabel}
+                      </p>
+                      <p className="mt-1 text-base font-semibold leading-snug text-foreground">
+                        {event.title}
+                      </p>
+                      {event.description ? (
+                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                          {event.description}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="min-w-0 py-1">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {time}
-                      {event.location ? ` · ${event.location}` : ""}
-                    </p>
-                    <p className="mt-1 font-semibold">{event.title}</p>
-                  </div>
+                  <Link
+                    href={`/events/${event.id}`}
+                    prefetch
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "h-11 w-full border-primary/30 text-primary hover:bg-primary-light/40",
+                    )}
+                  >
+                    RSVP
+                  </Link>
                 </Card>
               );
             })}
