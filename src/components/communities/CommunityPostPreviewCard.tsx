@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { Globe, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,41 @@ import type { PostCommentRow } from "@/lib/posts/map-post";
 import { notifyHomeFeedInvalidate } from "@/lib/posts/home-feed-cache";
 import { getPostMediaItems, type PostMediaItem } from "@/lib/posts/post-media";
 import { plainTextFromPostHtml } from "@/lib/posts/rich-text";
-import { formatTimeAgo } from "@/lib/utils/time-ago";
+import { formatPostHeaderTime } from "@/lib/events/format-event-datetime";
+function PostCardContextStrip({
+  communityName,
+  channelName,
+  trailing,
+  className,
+}: {
+  communityName: string;
+  channelName?: string | null;
+  trailing?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={[
+        "grid h-10 grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <div className="flex min-h-0 min-w-0 items-center gap-2 overflow-hidden text-sm leading-none">
+        <span className="shrink-0 text-muted-foreground">Community</span>
+        <span className="shrink-0 text-muted-foreground" aria-hidden>
+          &gt;
+        </span>
+        <span className="min-w-0 truncate text-primary">
+          <span className="font-medium">{communityName}</span>
+          {channelName ? <span className="font-normal">{` · ${channelName}`}</span> : null}
+        </span>
+      </div>
+      {trailing ? <div className="flex items-center justify-center pl-1">{trailing}</div> : null}
+    </div>
+  );
+}
 
 type Props = {
   postId: string;
@@ -114,10 +148,7 @@ export function CommunityPostPreviewCard({
     [media, viewContent],
   );
 
-  const timeAgo = formatTimeAgo(createdAt);
-  const contextLine = channelName
-    ? `${communityName} · ${channelName}`
-    : communityName;
+  const postedAt = formatPostHeaderTime(createdAt);
 
   function onDelete() {
     if (!window.confirm("Delete this post? This cannot be undone.")) return;
@@ -199,7 +230,55 @@ export function CommunityPostPreviewCard({
   return (
     <>
       <Card className="overflow-hidden rounded-lg border border-border shadow-sm">
-        <div className="px-4 pt-4">
+        <PostCardContextStrip
+          className="px-4"
+          communityName={communityName}
+          channelName={channelName}
+          trailing={
+              canEdit ? (
+                <div className="relative" ref={menuRef}>
+                  <button
+                    type="button"
+                    className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-page-secondary hover:text-foreground"
+                    aria-label="Post options"
+                    aria-expanded={menuOpen}
+                    onClick={() => setMenuOpen((v) => !v)}
+                  >
+                    <MoreHorizontal className="size-4 shrink-0" strokeWidth={2} />
+                  </button>
+                  {menuOpen ? (
+                    <div
+                      className="absolute right-0 top-full z-20 mt-1 min-w-[140px] overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
+                      role="menu"
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-page-secondary disabled:opacity-50"
+                        onClick={startEditing}
+                        disabled={loadingEdit || pending}
+                      >
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                        {loadingEdit ? "Loading…" : "Edit"}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/5"
+                        onClick={onDelete}
+                        disabled={pending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null
+            }
+        />
+
+        <div className="px-4 pt-3">
           {error ? (
             <p className="mb-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
               {error}
@@ -214,60 +293,15 @@ export function CommunityPostPreviewCard({
               size="md"
               className="h-12 w-12 shrink-0"
             />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold leading-snug text-foreground">
-                    {authorName}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">{contextLine}</p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                    <span>{timeAgo}</span>
-                    <span>·</span>
-                    <Globe className="h-3 w-3" aria-hidden />
-                  </p>
-                </div>
-                {canEdit ? (
-                  <div className="relative shrink-0" ref={menuRef}>
-                    <button
-                      type="button"
-                      className="rounded-full p-1.5 text-muted-foreground hover:bg-page-secondary hover:text-foreground"
-                      aria-label="Post options"
-                      aria-expanded={menuOpen}
-                      onClick={() => setMenuOpen((v) => !v)}
-                    >
-                      <MoreHorizontal className="h-5 w-5" />
-                    </button>
-                    {menuOpen ? (
-                      <div
-                        className="absolute right-0 top-full z-20 mt-1 min-w-[140px] overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
-                        role="menu"
-                      >
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-page-secondary disabled:opacity-50"
-                          onClick={startEditing}
-                          disabled={loadingEdit || pending}
-                        >
-                          <Pencil className="h-4 w-4 text-muted-foreground" />
-                          {loadingEdit ? "Loading…" : "Edit"}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/5"
-                          onClick={onDelete}
-                          disabled={pending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
+            <div className="min-w-0 flex-1 pt-0.5">
+              <p className="truncate text-sm font-semibold leading-snug text-foreground">
+                {authorName}
+              </p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                {postedAt ? <span>{postedAt}</span> : null}
+                {postedAt ? <span>·</span> : null}
+                <Globe className="h-3 w-3" aria-hidden />
+              </p>
             </div>
           </div>
 
@@ -357,13 +391,14 @@ export function CommunityPostPreviewCard({
         onClose={() => setLightboxOpen(false)}
         sidebar={
           <div className="flex h-full flex-col px-4 pb-4">
+            <PostCardContextStrip communityName={communityName} channelName={channelName} />
             <div className="flex gap-3 border-b border-border py-4">
               <Avatar alt={authorName} fallback={authorName} src={authorAvatarUrl} size="md" />
               <div>
                 <p className="text-sm font-semibold">{authorName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {contextLine} · {timeAgo}
-                </p>
+                {postedAt ? (
+                  <p className="text-xs text-muted-foreground">{postedAt}</p>
+                ) : null}
               </div>
             </div>
             <div className="flex-1 overflow-y-auto py-3">

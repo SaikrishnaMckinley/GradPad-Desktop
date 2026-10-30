@@ -12,6 +12,8 @@ import {
   getPendingMembers,
 } from "@/lib/communities/queries";
 
+export const instant = false;
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
@@ -48,8 +50,14 @@ export default async function CommunityAdminPage({ params }: Props) {
         </div>
         <div className="flex gap-2">
           <Link
-            href={`/communities/${slug}/edit`}
+            href={`/communities/${slug}/manage-payout`}
             className={cn(buttonVariants({ variant: "secondary" }))}
+          >
+            Bank account
+          </Link>
+          <Link
+            href={`/communities/${slug}/edit`}
+            className={cn(buttonVariants({ variant: "outline" }))}
           >
             Edit community
           </Link>
