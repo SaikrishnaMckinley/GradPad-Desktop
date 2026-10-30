@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Camera } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -33,8 +34,7 @@ export function AvatarUpload({ fullName, avatarUrl }: AvatarUploadProps) {
     }
 
     setPending(true);
-    const localPreview = URL.createObjectURL(file);
-    setPreview(localPreview);
+    setPreview(URL.createObjectURL(file));
 
     try {
       const formData = new FormData();
@@ -54,11 +54,18 @@ export function AvatarUpload({ fullName, avatarUrl }: AvatarUploadProps) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-      <Avatar src={preview} alt={fullName} fallback={fullName} size="xl" />
-      <div className="space-y-2 text-center sm:text-left">
-        <p className="text-sm font-medium">Profile photo</p>
-        <p className="text-xs text-muted-foreground">Same upload flow as gradpad-web (PATCH users/detail/).</p>
+    <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+      <div className="relative shrink-0">
+        <Avatar src={preview} alt={fullName} fallback={fullName} size="xl" />
+        <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-border/80 ring-offset-2 ring-offset-page-secondary/40" />
+      </div>
+      <div className="min-w-0 flex-1 space-y-3">
+        <div>
+          <p className="text-base font-semibold text-foreground">{fullName || "Your profile"}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            JPG, PNG, WebP, or GIF · 5 MB max
+          </p>
+        </div>
         <input
           ref={inputRef}
           type="file"
@@ -68,12 +75,14 @@ export function AvatarUpload({ fullName, avatarUrl }: AvatarUploadProps) {
         />
         <Button
           type="button"
-          variant="secondary"
+          variant="outline"
           size="sm"
           disabled={pending}
+          className="gap-2"
           onClick={() => inputRef.current?.click()}
         >
-          {pending ? "Uploading…" : "Change photo"}
+          <Camera className="h-4 w-4" aria-hidden />
+          {pending ? "Uploading…" : "Upload photo"}
         </Button>
       </div>
     </div>

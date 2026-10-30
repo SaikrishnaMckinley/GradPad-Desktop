@@ -182,9 +182,18 @@ export function CommunityDetailContent({
             ) : null}
           </div>
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Button variant="outline" className="h-11 w-full">
-              Make a donation
-            </Button>
+            {isMember || canManage ? (
+              <Link
+                href={`/communities/${community.id}/donate`}
+                className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full")}
+              >
+                Make a donation
+              </Link>
+            ) : (
+              <Button variant="outline" className="h-11 w-full" disabled>
+                Make a donation
+              </Button>
+            )}
             {canManage ? (
               <Link
                 href={`/communities/${community.slug}/admin`}

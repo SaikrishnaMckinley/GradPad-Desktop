@@ -50,6 +50,12 @@ export default async function CommunityAdminPage({ params }: Props) {
         </div>
         <div className="flex gap-2">
           <Link
+            href={`/communities/${slug}/admin/donations`}
+            className={cn(buttonVariants({ variant: "secondary" }))}
+          >
+            Donation funds
+          </Link>
+          <Link
             href={`/communities/${slug}/manage-payout`}
             className={cn(buttonVariants({ variant: "secondary" }))}
           >
