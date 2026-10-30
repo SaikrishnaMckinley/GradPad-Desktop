@@ -7,8 +7,9 @@ export async function getCommunityFeedPosts(
   communityId: string,
   communityName: string,
   limit = 50,
+  options?: { cacheable?: boolean },
 ): Promise<FeedPostRow[]> {
-  const result = await fetchPostsByCommunityRaw(communityId, limit);
+  const result = await fetchPostsByCommunityRaw(communityId, limit, options);
   if (!result.ok || !result.data) return [];
   return mapPostsResponse(result.data, communityName);
 }

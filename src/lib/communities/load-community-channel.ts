@@ -53,7 +53,9 @@ export const loadCommunityChannel = cache(
     const [posts, channels, memberships] = await Promise.all([
       canSee ? getChannelPosts(channel.id) : [],
       canSee ? getCommunityChannels(community.id) : [],
-      listDiscoverableCommunities(session?.id ?? null),
+      listDiscoverableCommunities(session?.id ?? null).then((list) =>
+        list.filter((m) => isActiveMember(m.membershipStatus)),
+      ),
     ]);
 
     return {

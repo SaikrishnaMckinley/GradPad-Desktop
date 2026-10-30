@@ -131,9 +131,9 @@ export async function getCommunityMembers(
   return { members: [], total: 0 };
 }
 
-export async function getPendingMembers(_communityId: string): Promise<CommunityMemberRow[]> {
+export async function getPendingMembers(communityId: string) {
   if (!isDemoStaticUi()) {
-    return [];
+    return apiCommunities.getCommunityJoinRequests(communityId);
   }
   return [];
 }

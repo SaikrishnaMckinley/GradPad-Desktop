@@ -1,8 +1,9 @@
 import "server-only";
 
-import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { getApiSessionProfile } from "@/lib/auth/get-api-session-profile";
 import { resolveShellUser } from "@/lib/auth/resolve-shell-user";
+import { communityHubCacheTag } from "@/lib/communities/cache-tags";
 import { canManageCommunity, isActiveMember } from "@/lib/communities/permissions";
 import type { CommunityHubPayload } from "@/lib/communities/hub-cache";
 import {
@@ -14,7 +15,11 @@ import {
   listDiscoverableCommunities,
 } from "@/lib/communities/queries";
 
-export const loadCommunityHub = cache(async (routeKey: string): Promise<CommunityHubPayload | null> => {
+export async function loadCommunityHub(routeKey: string): Promise<CommunityHubPayload | null> {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag(communityHubCacheTag(routeKey));
+
   const session = await getApiSessionProfile();
   const community = await getCommunityBySlug(routeKey, session?.id ?? null);
 
@@ -45,6 +50,6 @@ export const loadCommunityHub = cache(async (routeKey: string): Promise<Communit
     canManage,
     isMember: member,
     shellUser: resolveShellUser(session, true),
-    memberships,
+    memberships: memberships.filter((m) => isActiveMember(m.membershipStatus)),
   };
-});
+}

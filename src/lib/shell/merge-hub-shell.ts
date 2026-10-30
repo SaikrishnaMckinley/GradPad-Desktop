@@ -12,6 +12,7 @@ function toSidebarCommunity(item: CommunityListItem): SidebarCommunity {
     logoUrl: item.logoUrl,
     initials: communityInitials(item.name),
     accentColor: communityAccentColor(item.slug),
+    membershipStatus: item.membershipStatus,
   };
 }
 

@@ -7,6 +7,7 @@ import {
   fetchCommunityChannelsRaw,
   fetchCommunityDetailRaw,
   fetchCommunityListRaw,
+  fetchCommunityJoinRequestsRaw,
   fetchCommunityMembersRaw,
   fetchCommunityPostsRaw,
   fetchCommunityUpcomingEventsRaw,
@@ -20,7 +21,12 @@ import {
 import { unwrapList } from "@/lib/api/parse-list";
 import { parseEventStartIso } from "@/lib/events/format-event-datetime";
 import { mapPostsResponse } from "@/lib/posts/map-post";
-import type { CommunityDetail, CommunityListItem, CommunityMemberRow } from "@/types/community";
+import type {
+  CommunityDetail,
+  CommunityJoinRequestRow,
+  CommunityListItem,
+  CommunityMemberRow,
+} from "@/types/community";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -261,11 +267,58 @@ export async function getCommunityMembers(
     } satisfies CommunityMemberRow;
   });
 
+  const active = all.filter((m) => m.status === "active");
+
   const from = (page - 1) * pageSize;
   return {
-    members: all.slice(from, from + pageSize),
-    total: all.length,
+    members: active.slice(from, from + pageSize),
+    total: active.length,
   };
+}
+
+type ApiJoinRequestUser = {
+  id?: string | number;
+  first_name?: string;
+  last_name?: string;
+  nickname?: string | null;
+  photo?: string | null;
+};
+
+type ApiJoinRequest = {
+  id?: string;
+  user?: ApiJoinRequestUser;
+  message?: string | null;
+  created_at?: string;
+  request_type?: string;
+};
+
+export async function getCommunityJoinRequests(
+  communityId: string,
+): Promise<CommunityJoinRequestRow[]> {
+  const result = await fetchCommunityJoinRequestsRaw(communityId);
+  if (!result.ok || !result.data) {
+    return [];
+  }
+
+  const rows = unwrapList(result.data) as ApiJoinRequest[];
+
+  return rows
+    .filter((row) => row.request_type === "community" || !row.request_type)
+    .map((row, index) => {
+      const user = row.user;
+      const fullName =
+        user &&
+        [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+      return {
+        id: row.id ?? `request-${index}`,
+        userId: user?.id != null ? String(user.id) : `user-${index}`,
+        fullName: fullName || user?.nickname?.trim() || "Member",
+        username: user?.nickname?.trim() || null,
+        avatarUrl: user?.photo ?? null,
+        message: row.message?.trim() || null,
+        createdAt: row.created_at ?? new Date().toISOString(),
+      } satisfies CommunityJoinRequestRow;
+    });
 }
 
 export async function findCommunityInUserList(

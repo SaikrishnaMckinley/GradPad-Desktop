@@ -6,6 +6,7 @@ import { MobileHeader } from "@/components/layout/MobileHeader";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
 import { MobileSidebarDrawer } from "@/components/layout/MobileSidebarDrawer";
 import { useShellData } from "@/components/layout/ShellDataProvider";
+import { NavPrefetch } from "@/components/layout/NavPrefetch";
 import { TopNavigation } from "@/components/layout/TopNavigation";
 
 type AppShellProps = {
@@ -18,6 +19,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-dvh bg-page">
+      <NavPrefetch />
       <DesktopSidebar shellUser={shellUser} communityContext={communityContext} />
       <MobileSidebarDrawer
         open={mobileMenuOpen}
@@ -27,7 +29,7 @@ export function AppShell({ children }: AppShellProps) {
       />
       <div className="flex min-h-dvh min-w-0 flex-col lg:pl-[276px]">
         <Suspense fallback={null}>
-          <TopNavigation shellUser={shellUser} />
+          <TopNavigation shellUser={shellUser} communityContext={communityContext} />
         </Suspense>
         <MobileHeader shellUser={shellUser} onMenuOpen={() => setMobileMenuOpen(true)} />
         <main className="flex-1 pb-20 lg:pb-0">{children}</main>

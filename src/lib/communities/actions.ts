@@ -3,13 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { setActiveCommunitySlug } from "@/lib/communities/active-community";
+import { requireActiveCommunityMember } from "@/lib/communities/membership-guard";
 import { canAssignRole, canManageCommunity } from "@/lib/communities/permissions";
 import { getCommunityBySlug } from "@/lib/communities/queries";
 import { getSessionProfile } from "@/lib/auth/get-session-profile";
 import { getSessionTokens } from "@/lib/auth/session-cookies";
 import { stagingCreateChannel } from "@/lib/api/staging-channel";
 import { stagingCreateCommunity } from "@/lib/api/staging-community";
-import { serverFetchForm, serverFetchPost, readStagingActionError } from "@/lib/api/server-fetch";
+import {
+  serverFetchForm,
+  serverFetchJson,
+  serverFetchPost,
+  readStagingActionError,
+} from "@/lib/api/server-fetch";
 import { mapSidebarCommunity } from "@/lib/api/map-community";
 import { isDemoStaticUi, usesStagingApi } from "@/lib/demo-mode";
 import { createClient } from "@/lib/supabase/server";
@@ -204,6 +210,11 @@ export async function createChannel(
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const membershipError = await requireActiveCommunityMember(parsed.data.communityId);
+  if (membershipError) {
+    return { error: membershipError };
   }
 
   const logo = formData.get("logo");
@@ -417,7 +428,7 @@ export async function leaveCommunityAction(
 }
 
 export async function reviewMembershipRequest(
-  membershipId: string,
+  requestId: string,
   communityId: string,
   slug: string,
   decision: "active" | "rejected",
@@ -430,6 +441,30 @@ export async function reviewMembershipRequest(
     return { error: "You are not allowed to review membership requests." };
   }
 
+  void communityId;
+
+  if (usesStagingApi()) {
+    const result =
+      decision === "active"
+        ? await serverFetchJson(`requests/${requestId}/accept/`, {
+            method: "PATCH",
+            body: JSON.stringify({}),
+          })
+        : await serverFetchJson(`requests/${requestId}/`, { method: "DELETE" });
+
+    if (!result.ok) {
+      return {
+        error:
+          readStagingActionError(result) ??
+          (decision === "active" ? "Could not approve request." : "Could not reject request."),
+      };
+    }
+
+    revalidateCommunity(slug);
+    revalidatePath(`/communities/${slug}/admin`);
+    return { success: decision === "active" ? "Member approved." : "Request rejected." };
+  }
+
   const blocked = blockIfStagingOnlyMutation();
   if (blocked) return blocked;
 
@@ -437,7 +472,7 @@ export async function reviewMembershipRequest(
   const { error } = await supabase
     .from("community_members")
     .update({ status: decision satisfies MembershipStatus })
-    .eq("id", membershipId)
+    .eq("id", requestId)
     .eq("community_id", communityId)
     .eq("status", "pending");
 

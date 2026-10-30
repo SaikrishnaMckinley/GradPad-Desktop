@@ -12,6 +12,10 @@ import { Card } from "@/components/ui/card";
 import { createChannel, createCommunity } from "@/lib/communities/actions";
 import { EventCreateForm } from "@/components/events/EventCreateForm";
 import { PostCreateForm } from "@/components/posts/PostCreateForm";
+import {
+  activeSidebarMemberships,
+  canCreateInCommunity,
+} from "@/lib/communities/permissions";
 import { slugifyCommunityName } from "@/lib/communities/slug";
 import { cn } from "@/lib/utils/cn";
 
@@ -101,10 +105,28 @@ export function CreateHub({
 }: Props) {
   const { shellUser, communityContext } = useShellData();
   const userDisplayName = shellUser.fullName;
+  const joinedCommunities = activeSidebarMemberships(communityContext.memberships);
+  const prefillAllowed =
+    prefillCommunityId &&
+    joinedCommunities.some((m) => m.id === prefillCommunityId);
+  const activeJoined =
+    communityContext.activeCommunity &&
+    canCreateInCommunity(communityContext.activeCommunity.membershipStatus)
+      ? communityContext.activeCommunity
+      : null;
   const defaultCommunityId =
-    prefillCommunityId ?? communityContext.activeCommunity?.id ?? null;
+    (prefillAllowed ? prefillCommunityId : null) ??
+    activeJoined?.id ??
+    joinedCommunities[0]?.id ??
+    null;
   const defaultCommunityRouteKey =
-    prefillCommunityRouteKey ?? communityContext.activeSlug ?? null;
+    prefillCommunityRouteKey ??
+    (activeJoined?.slug ?? joinedCommunities[0]?.slug ?? null);
+
+  const membershipGateMessage =
+    joinedCommunities.length === 0 && stagingApi
+      ? "Join a community (or wait for approval if your request is pending) before creating posts, events, or channels."
+      : null;
 
   const tabBar = (
     <div className="flex w-full border-b border-border p-2">
@@ -141,11 +163,17 @@ export function CreateHub({
           </div>
           {stagingApi ? (
             <Suspense fallback={<p className="text-sm text-muted-foreground">Loading form…</p>}>
-              <EventCreateForm
-                memberships={communityContext.memberships}
-                defaultCommunityId={defaultCommunityId}
-                payoutSetupNotice={payoutSetupNotice}
-              />
+              {membershipGateMessage ? (
+                <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+                  {membershipGateMessage}
+                </p>
+              ) : (
+                <EventCreateForm
+                  memberships={joinedCommunities}
+                  defaultCommunityId={defaultCommunityId}
+                  payoutSetupNotice={payoutSetupNotice}
+                />
+              )}
             </Suspense>
           ) : (
             <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
@@ -170,12 +198,18 @@ export function CreateHub({
                 Add a discussion space inside a community you manage or belong to.
               </p>
             </div>
-            <ChannelForm
-              action={createChannel}
-              memberships={communityContext.memberships}
-              defaultCommunityId={defaultCommunityId}
-              defaultCommunityRouteKey={defaultCommunityRouteKey}
-            />
+            {membershipGateMessage ? (
+              <p className="rounded-xl border border-dashed border-border bg-page-secondary/80 px-4 py-3 text-sm text-muted-foreground">
+                {membershipGateMessage}
+              </p>
+            ) : (
+              <ChannelForm
+                action={createChannel}
+                memberships={joinedCommunities}
+                defaultCommunityId={defaultCommunityId}
+                defaultCommunityRouteKey={defaultCommunityRouteKey}
+              />
+            )}
           </div>
         ) : activeTab === "community" ? (
           <div className="p-6 md:p-8">
@@ -214,13 +248,19 @@ export function CreateHub({
                 <p className="text-sm text-muted-foreground">Share an update with your community</p>
               </div>
             </div>
-            <PostCreateForm
-              key={`post-${defaultCommunityId ?? "none"}-${prefillChannelId ?? "none"}`}
-              memberships={communityContext.memberships}
-              channelsByCommunityId={communityContext.channelsByCommunityId}
-              defaultCommunityId={defaultCommunityId}
-              defaultChannelId={prefillChannelId}
-            />
+            {membershipGateMessage ? (
+              <p className="rounded-xl border border-dashed border-border bg-page-secondary/80 px-4 py-3 text-sm text-muted-foreground">
+                {membershipGateMessage}
+              </p>
+            ) : (
+              <PostCreateForm
+                key={`post-${defaultCommunityId ?? "none"}-${prefillChannelId ?? "none"}`}
+                memberships={joinedCommunities}
+                channelsByCommunityId={communityContext.channelsByCommunityId}
+                defaultCommunityId={defaultCommunityId}
+                defaultChannelId={prefillChannelId}
+              />
+            )}
           </div>
         )}
       </Card>

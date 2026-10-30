@@ -1,5 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import {
+  fetchCurrentStagingUserDetail,
+  fetchStagingUserDetailById,
+  isUserIdSlug,
+} from "@/lib/profiles/staging-user-detail";
+import type { UserProfileView } from "@/types/profile";
 
+/** @deprecated Use UserProfileView from staging-user-detail; kept for imports. */
 export type PublicProfile = {
   id: string;
   username: string;
@@ -15,28 +21,61 @@ export type PublicProfile = {
 export async function getProfileByUsername(
   username: string,
 ): Promise<PublicProfile | null> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(
-      "id, username, full_name, headline, bio, institution, location, avatar_url, graduation_year",
-    )
-    .eq("username", username.toLowerCase())
-    .maybeSingle();
+  const slug = username.trim();
+  if (!slug) return null;
 
-  if (error || !data?.username) {
+  if (isUserIdSlug(slug)) {
+    const byId = await fetchStagingUserDetailById(slug);
+    return byId ? toLegacyPublicProfile(byId) : null;
+  }
+
+  const current = await fetchCurrentStagingUserDetail();
+  if (!current) return null;
+
+  const nicknameMatch =
+    current.nickname && current.nickname.toLowerCase() === slug.toLowerCase();
+  const idMatch = current.id === slug;
+
+  if (!nicknameMatch && !idMatch) {
     return null;
   }
 
+  return toLegacyPublicProfile(current);
+}
+
+/** Full staging profile for profile page (own user or by user id slug). */
+export async function getUserProfileView(username: string) {
+  const slug = username.trim();
+  if (!slug) return null;
+
+  if (isUserIdSlug(slug)) {
+    return fetchStagingUserDetailById(slug);
+  }
+
+  const current = await fetchCurrentStagingUserDetail();
+  if (!current) return null;
+
+  const nicknameMatch =
+    current.nickname && current.nickname.toLowerCase() === slug.toLowerCase();
+  if (nicknameMatch || current.id === slug) {
+    return current;
+  }
+
+  return null;
+}
+
+function toLegacyPublicProfile(profile: UserProfileView): PublicProfile {
+  const p = profile;
+  const grad = p.graduationYear ? Number.parseInt(p.graduationYear, 10) : NaN;
   return {
-    id: data.id,
-    username: data.username,
-    fullName: data.full_name ?? "Member",
-    headline: data.headline,
-    bio: data.bio,
-    institution: data.institution,
-    location: data.location,
-    avatarUrl: data.avatar_url,
-    graduationYear: data.graduation_year,
+    id: p.id,
+    username: p.nickname ?? p.id,
+    fullName: p.fullName,
+    headline: p.shortBio,
+    bio: p.shortBio,
+    institution: p.company,
+    location: [p.hometown, p.country].filter(Boolean).join(" · ") || null,
+    avatarUrl: p.photo,
+    graduationYear: Number.isFinite(grad) ? grad : null,
   };
 }

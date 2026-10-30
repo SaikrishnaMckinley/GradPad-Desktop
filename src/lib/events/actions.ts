@@ -17,6 +17,7 @@ import {
   refreshCommunityStripeOnboardingRaw,
 } from "@/lib/api/event-payments";
 import { stagingCreateEventRaw, stagingPatchEventRaw } from "@/lib/api/events";
+import { requireActiveCommunityMember } from "@/lib/communities/membership-guard";
 import { readStagingActionError } from "@/lib/api/server-fetch";
 import { getSessionTokens } from "@/lib/auth/session-cookies";
 import { usesStagingApi } from "@/lib/demo-mode";
@@ -296,6 +297,11 @@ export async function createEvent(
   }
 
   const { data, body } = built;
+
+  const membershipError = await requireActiveCommunityMember(data.communityId);
+  if (membershipError) {
+    return { error: membershipError };
+  }
 
   const result = await stagingCreateEventRaw(data.communityId, body);
   if (!result.ok) {

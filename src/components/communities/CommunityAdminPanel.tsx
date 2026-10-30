@@ -11,13 +11,17 @@ import {
   reviewMembershipRequest,
   updateMemberRoleAction,
 } from "@/lib/communities/actions";
-import type { CommunityMemberRow, MembershipRole } from "@/types/community";
+import type {
+  CommunityJoinRequestRow,
+  CommunityMemberRow,
+  MembershipRole,
+} from "@/types/community";
 
 type Props = {
   communityId: string;
   slug: string;
   actorRole: MembershipRole;
-  pending: CommunityMemberRow[];
+  pending: CommunityJoinRequestRow[];
   members: CommunityMemberRow[];
 };
 
@@ -65,6 +69,9 @@ export function CommunityAdminPanel({
                       {row.username ? (
                         <p className="text-xs text-muted-foreground">@{row.username}</p>
                       ) : null}
+                      {row.message ? (
+                        <p className="mt-1 max-w-md text-xs text-muted-foreground">{row.message}</p>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -101,6 +108,9 @@ export function CommunityAdminPanel({
 
       <section>
         <h2 className="mb-4 text-lg font-semibold">Active members</h2>
+        {members.length === 0 ? (
+          <Card className="p-5 text-sm text-muted-foreground">No active members yet.</Card>
+        ) : (
         <ul className="space-y-3">
           {members.map((row) => (
             <li key={row.id}>
@@ -159,6 +169,7 @@ export function CommunityAdminPanel({
             </li>
           ))}
         </ul>
+        )}
       </section>
     </div>
   );

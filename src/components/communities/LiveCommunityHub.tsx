@@ -28,6 +28,8 @@ export function LiveCommunityHub({ initialHub }: Props) {
       rightRail={
         <CommunityDetailSidebar
           user={initialHub.shellUser}
+          communityId={initialHub.isMember ? initialHub.community.id : undefined}
+          canCreateInCommunity={initialHub.isMember}
           memberships={initialHub.memberships}
           upcomingEvents={initialHub.events}
         />

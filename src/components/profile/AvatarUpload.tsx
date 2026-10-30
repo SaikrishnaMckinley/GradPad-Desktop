@@ -4,19 +4,17 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
-import { updateAvatarUrl } from "@/lib/auth/profile-actions";
+import { updateProfilePhoto } from "@/lib/auth/profile-actions";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 type AvatarUploadProps = {
-  userId: string;
   fullName: string;
   avatarUrl: string | null;
 };
 
-export function AvatarUpload({ userId, fullName, avatarUrl }: AvatarUploadProps) {
+export function AvatarUpload({ fullName, avatarUrl }: AvatarUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState(false);
   const [preview, setPreview] = useState<string | null>(avatarUrl);
@@ -35,31 +33,20 @@ export function AvatarUpload({ userId, fullName, avatarUrl }: AvatarUploadProps)
     }
 
     setPending(true);
+    const localPreview = URL.createObjectURL(file);
+    setPreview(localPreview);
+
     try {
-      const supabase = createClient();
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${userId}/avatar.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { upsert: true, contentType: file.type });
-
-      if (uploadError) {
-        toast.error(uploadError.message);
-        return;
-      }
-
-      const { data: publicUrl } = supabase.storage.from("avatars").getPublicUrl(path);
-      const url = `${publicUrl.publicUrl}?v=${Date.now()}`;
-
-      const result = await updateAvatarUrl(url);
+      const formData = new FormData();
+      formData.set("photo", file);
+      const result = await updateProfilePhoto(formData);
       if (result.error) {
         toast.error(result.error);
-        return;
+        setPreview(avatarUrl);
+      } else {
+        toast.success("Profile photo updated.");
+        if (result.photo) setPreview(result.photo);
       }
-
-      setPreview(url);
-      toast.success("Avatar updated");
     } finally {
       setPending(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -67,9 +54,11 @@ export function AvatarUpload({ userId, fullName, avatarUrl }: AvatarUploadProps)
   }
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
       <Avatar src={preview} alt={fullName} fallback={fullName} size="xl" />
-      <div>
+      <div className="space-y-2 text-center sm:text-left">
+        <p className="text-sm font-medium">Profile photo</p>
+        <p className="text-xs text-muted-foreground">Same upload flow as gradpad-web (PATCH users/detail/).</p>
         <input
           ref={inputRef}
           type="file"
@@ -84,11 +73,8 @@ export function AvatarUpload({ userId, fullName, avatarUrl }: AvatarUploadProps)
           disabled={pending}
           onClick={() => inputRef.current?.click()}
         >
-          {pending ? "Uploading…" : "Upload photo"}
+          {pending ? "Uploading…" : "Change photo"}
         </Button>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Max 5 MB. Stored in Supabase Storage.
-        </p>
       </div>
     </div>
   );

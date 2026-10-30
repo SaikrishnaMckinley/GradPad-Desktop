@@ -8,6 +8,7 @@ import {
   stagingUpdatePostRaw,
 } from "@/lib/api/posts";
 import { getPostMediaItems, type PostMediaItem } from "@/lib/posts/post-media";
+import { requireActiveCommunityMember } from "@/lib/communities/membership-guard";
 import { readStagingActionError } from "@/lib/api/server-fetch";
 import { getSessionTokens } from "@/lib/auth/session-cookies";
 import { usesStagingApi } from "@/lib/demo-mode";
@@ -46,6 +47,11 @@ export async function createPost(
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const membershipError = await requireActiveCommunityMember(parsed.data.communityId);
+  if (membershipError) {
+    return { error: membershipError };
   }
 
   const channelId = parsed.data.channelId?.trim();

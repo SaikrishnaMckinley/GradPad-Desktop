@@ -64,7 +64,7 @@ export function CommunityChannelContent({ community, channel, posts, isMember }:
               Latest in #{channel.name}
             </p>
           </div>
-          {canSee ? (
+          {isMember ? (
             <Link
               href={`/create?tab=post&community=${encodeURIComponent(community.id)}&channel=${encodeURIComponent(channel.id)}`}
               className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}

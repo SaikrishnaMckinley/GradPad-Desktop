@@ -33,7 +33,9 @@ export default async function DynamicCommunityPage({ params }: Props) {
     member ? getCommunityEventsPreview(community.id) : [],
     member ? getCommunityPostsPreview(community.id) : [],
     getCommunityMembers(community.id, 1, 5),
-    listDiscoverableCommunities(session?.id ?? null),
+    listDiscoverableCommunities(session?.id ?? null).then((list) =>
+      list.filter((m) => isActiveMember(m.membershipStatus)),
+    ),
   ]);
 
   const shellUser = resolveShellUser(session, true);
@@ -44,6 +46,8 @@ export default async function DynamicCommunityPage({ params }: Props) {
       rightRail={
         <CommunityDetailSidebar
           user={shellUser}
+          communityId={member ? community.id : undefined}
+          canCreateInCommunity={member}
           memberships={memberships}
           upcomingEvents={events}
         />

@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import { ProfileSettingsForm } from "@/components/profile/ProfileSettingsForm";
 import { Card } from "@/components/ui/card";
-import { getSessionProfile } from "@/lib/auth/get-session-profile";
 import { isDemoStaticUi } from "@/lib/demo-mode";
+import { fetchCurrentStagingUserDetail } from "@/lib/profiles/staging-user-detail";
 
 export const metadata = { title: "Profile settings" };
 
@@ -13,32 +14,24 @@ async function ProfileSettingsContent() {
     redirect("/home");
   }
 
-  const session = await getSessionProfile();
-  if (!session) {
+  const profile = await fetchCurrentStagingUserDetail();
+  if (!profile) {
     redirect("/login?next=/settings/profile");
   }
 
-  const username = session.username ?? "";
-
   return (
-    <PageContainer className="max-w-xl">
-      <div className="mb-6">
+    <PageContainer className="max-w-xl space-y-6">
+      <div>
         <h1 className="text-2xl font-semibold tracking-tight">Profile settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Update how you appear across Grad Pad (staging API).
+          Edit your Grad Pad profile on staging (same fields as gradpad-web).
         </p>
       </div>
-      <Card className="p-6">
-        <ProfileSettingsForm
-          defaults={{
-            fullName: session.fullName,
-            username,
-            headline: session.headline ?? "",
-            bio: "",
-            institution: "",
-            location: "",
-          }}
-        />
+      <Card className="p-6 shadow-card">
+        <AvatarUpload fullName={profile.fullName} avatarUrl={profile.photo} />
+      </Card>
+      <Card className="p-6 shadow-card">
+        <ProfileSettingsForm profile={profile} />
       </Card>
     </PageContainer>
   );

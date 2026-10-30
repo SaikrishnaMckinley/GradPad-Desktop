@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Plus } from "lucide-react";
 import { CommunityMark } from "@/components/layout/CommunityMark";
 import { buttonVariants } from "@/components/ui/button";
+import { canCreateInCommunity } from "@/lib/communities/permissions";
 import type { ShellCommunityContext } from "@/lib/communities/shell-data";
 import { resolveSidebarCommunityRouteKey } from "@/lib/shell/shell-context-sync";
 import { cn } from "@/lib/utils/cn";
@@ -55,6 +56,10 @@ export function SidebarCommunityNav({ communityContext }: Props) {
       communityContext.channels)
     : communityContext.channels;
 
+  const canCreateInActive = activeCommunity
+    ? canCreateInCommunity(activeCommunity.membershipStatus)
+    : false;
+
   return (
     <>
       {activeCommunity ? (
@@ -82,17 +87,15 @@ export function SidebarCommunityNav({ communityContext }: Props) {
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Channels
           </h2>
-          <Link
-            href={
-              activeCommunity
-                ? `/create?tab=channel&community=${encodeURIComponent(activeCommunity.id)}`
-                : "/create?tab=channel"
-            }
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
-            aria-label="Create channel"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2.25} />
-          </Link>
+          {canCreateInActive && activeCommunity ? (
+            <Link
+              href={`/create?tab=channel&community=${encodeURIComponent(activeCommunity.id)}`}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
+              aria-label="Create channel"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.25} />
+            </Link>
+          ) : null}
         </div>
         {activeCommunity && communityRouteKey && channels.length > 0 ? (
           <ul className="space-y-0.5 px-0.5">

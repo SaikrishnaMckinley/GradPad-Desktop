@@ -39,7 +39,7 @@ export function MobileHeader({ onMenuOpen, shellUser }: MobileHeaderProps) {
           <Bell className="h-5 w-5" />
           <span className="absolute right-2.5 top-2 h-1.5 w-1.5 rounded-full bg-error" />
         </Link>
-        <Link href="/settings/profile" aria-label="Profile">
+        <Link href="/settings" aria-label="Settings">
           <Avatar
             src={shellUser.avatarUrl}
             alt={shellUser.fullName}

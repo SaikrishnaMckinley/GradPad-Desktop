@@ -4,15 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Search } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import type { ShellCommunityContext } from "@/lib/communities/shell-data";
+import { primaryNavHref } from "@/lib/navigation/primary-nav-href";
 import { PRIMARY_NAV } from "@/types/navigation";
 import type { ShellUser } from "@/types/shell-user";
 import { cn } from "@/lib/utils/cn";
 
 type TopNavigationProps = {
   shellUser: ShellUser;
+  communityContext: ShellCommunityContext;
 };
 
-export function TopNavigation({ shellUser }: TopNavigationProps) {
+export function TopNavigation({ shellUser, communityContext }: TopNavigationProps) {
   const pathname = usePathname();
 
   return (
@@ -23,13 +26,15 @@ export function TopNavigation({ shellUser }: TopNavigationProps) {
           aria-label="Primary"
         >
           {PRIMARY_NAV.map((item) => {
+            const href = primaryNavHref(item, communityContext);
             const active = item.match?.(pathname) ?? pathname === item.href;
             const Icon = item.icon;
             const isCreate = item.label === "Create";
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.label}
+                href={href}
+                prefetch
                 className={cn(
                   "relative flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
                   active

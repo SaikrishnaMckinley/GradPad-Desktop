@@ -196,13 +196,15 @@ export function CommunityDetailContent({
             <h2 className="text-lg font-semibold">Channels</h2>
             <p className="text-sm text-muted-foreground">Discuss topics with your community</p>
           </div>
-          <Link
-            href={`/create?tab=channel&community=${encodeURIComponent(community.id)}`}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
-            aria-label="Create channel"
-          >
-            <Plus className="h-4 w-4" />
-          </Link>
+          {isMember ? (
+            <Link
+              href={`/create?tab=channel&community=${encodeURIComponent(community.id)}`}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
+              aria-label="Create channel"
+            >
+              <Plus className="h-4 w-4" />
+            </Link>
+          ) : null}
         </div>
         {!canSeeContent ? (
           <Card className="p-5 text-sm text-muted-foreground shadow-card">
@@ -249,7 +251,7 @@ export function CommunityDetailContent({
             <h2 className="text-lg font-semibold">Events</h2>
             <p className="text-sm text-muted-foreground">Gather with people from this community</p>
           </div>
-          {canManage ? (
+          {isMember ? (
             <Link
               href={`/create?tab=event&community=${encodeURIComponent(community.id)}`}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
@@ -319,13 +321,15 @@ export function CommunityDetailContent({
             <h2 className="text-lg font-semibold">Posts</h2>
             <p className="text-sm text-muted-foreground">{postsSubtitle}</p>
           </div>
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
-            aria-label="Create post"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
+          {isMember ? (
+            <Link
+              href={`/create?tab=post&community=${encodeURIComponent(community.id)}`}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
+              aria-label="Create post"
+            >
+              <Plus className="h-4 w-4" />
+            </Link>
+          ) : null}
         </div>
         {!isMember ? (
           <Card className="p-5 text-sm text-muted-foreground shadow-card">

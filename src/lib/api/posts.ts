@@ -2,9 +2,15 @@ import "server-only";
 
 import { serverFetchForm, serverFetchJson } from "@/lib/api/server-fetch";
 
-export async function fetchPostsByCommunityRaw(communityId: string, limit = 50) {
+export async function fetchPostsByCommunityRaw(
+  communityId: string,
+  limit = 50,
+  options?: { cacheable?: boolean },
+) {
   return serverFetchJson<unknown>(
     `posts/?community=${encodeURIComponent(communityId)}&limit=${limit}&page_size=${limit}`,
+    {},
+    { cacheable: options?.cacheable ?? false },
   );
 }
 

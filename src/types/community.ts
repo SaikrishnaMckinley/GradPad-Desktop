@@ -25,6 +25,7 @@ export type SidebarCommunity = {
   logoUrl: string | null;
   initials: string;
   accentColor: string;
+  membershipStatus?: MembershipStatus | null;
 };
 
 export type SidebarChannel = {
@@ -46,4 +47,15 @@ export type CommunityMemberRow = {
   role: MembershipRole;
   status: MembershipStatus;
   joinedAt: string;
+};
+
+/** Pending join via `GET requests/community/<id>/` (gradpad-web CommunityRequestScreen). */
+export type CommunityJoinRequestRow = {
+  id: string;
+  userId: string;
+  fullName: string;
+  username: string | null;
+  avatarUrl: string | null;
+  message: string | null;
+  createdAt: string;
 };

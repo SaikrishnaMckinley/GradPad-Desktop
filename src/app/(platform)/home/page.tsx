@@ -1,6 +1,8 @@
+import { Suspense } from "react";
+import { HomePageClient } from "@/components/home/HomePageClient";
+import { HomeRouteLoading } from "@/components/home/HomeRouteLoading";
 import { CommunityFilters } from "@/components/home/CommunityFilters";
 import { FeaturedEventCard } from "@/components/home/FeaturedEventCard";
-import { HomeFeedClient } from "@/components/home/HomeFeedClient";
 import { HomeRightSidebar } from "@/components/home/HomeRightSidebar";
 import { PostCard } from "@/components/home/PostCard";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -12,13 +14,24 @@ export const metadata = {
   title: "Home",
 };
 
+export const instant = true;
+
 type Props = {
   searchParams: Promise<{ community?: string }>;
 };
 
-export default async function HomePage({ searchParams }: Props) {
+async function HomePageContent({ searchParams }: Props) {
   const { community } = await searchParams;
 
+  const [feed, upcomingEvents] = await Promise.all([
+    loadHomeFeed(typeof community === "string" ? community : null),
+    getUpcomingEventsPreview(2),
+  ]);
+
+  return <HomePageClient feed={feed} upcomingEvents={upcomingEvents} />;
+}
+
+export default async function HomePage(props: Props) {
   if (isDemoStaticUi()) {
     return (
       <PageContainer withRightRail rightRail={<HomeRightSidebar />}>
@@ -31,14 +44,9 @@ export default async function HomePage({ searchParams }: Props) {
     );
   }
 
-  const [feed, upcomingEvents] = await Promise.all([
-    loadHomeFeed(typeof community === "string" ? community : null),
-    getUpcomingEventsPreview(2),
-  ]);
-
   return (
-    <PageContainer withRightRail rightRail={<HomeRightSidebar upcomingEvents={upcomingEvents} />}>
-      <HomeFeedClient initial={feed} />
-    </PageContainer>
+    <Suspense fallback={<HomeRouteLoading />}>
+      <HomePageContent {...props} />
+    </Suspense>
   );
 }

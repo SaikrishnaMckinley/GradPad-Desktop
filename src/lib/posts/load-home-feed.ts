@@ -1,9 +1,10 @@
 import "server-only";
 
-import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { getApiSessionProfile } from "@/lib/auth/get-api-session-profile";
 import { getActiveCommunitySlug } from "@/lib/communities/active-community";
 import { listDiscoverableCommunities } from "@/lib/communities/queries";
+import { HOME_FEED_CACHE_TAG } from "@/lib/posts/cache-tags";
 import { getCommunityFeedPosts } from "@/lib/posts/queries";
 import type { CommunityListItem } from "@/types/community";
 
@@ -35,26 +36,30 @@ function pickActiveCommunity(
   return memberships[0];
 }
 
-export const loadHomeFeed = cache(
-  async (queryCommunityId: string | null): Promise<HomeFeedPayload> => {
-    const session = await getApiSessionProfile();
-    const [memberships, cookieSlug] = await Promise.all([
-      listDiscoverableCommunities(session?.id ?? null),
-      getActiveCommunitySlug(),
-    ]);
+export async function loadHomeFeed(queryCommunityId: string | null): Promise<HomeFeedPayload> {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag(HOME_FEED_CACHE_TAG);
 
-    const activeCommunity = pickActiveCommunity(
-      memberships,
-      cookieSlug,
-      queryCommunityId,
-    );
+  const session = await getApiSessionProfile();
+  const [memberships, cookieSlug] = await Promise.all([
+    listDiscoverableCommunities(session?.id ?? null),
+    getActiveCommunitySlug(),
+  ]);
 
-    if (!activeCommunity) {
-      return { activeCommunity: null, memberships, posts: [] };
-    }
+  const activeCommunity = pickActiveCommunity(
+    memberships,
+    cookieSlug,
+    queryCommunityId,
+  );
 
-    const posts = await getCommunityFeedPosts(activeCommunity.id, activeCommunity.name);
+  if (!activeCommunity) {
+    return { activeCommunity: null, memberships, posts: [] };
+  }
 
-    return { activeCommunity, memberships, posts };
-  },
-);
+  const posts = await getCommunityFeedPosts(activeCommunity.id, activeCommunity.name, 50, {
+    cacheable: true,
+  });
+
+  return { activeCommunity, memberships, posts };
+}

@@ -135,5 +135,6 @@ export function mapSidebarCommunity(raw: ApiCommunityRecord): SidebarCommunity |
     logoUrl: base.logoUrl,
     initials: communityInitials(base.name),
     accentColor: communityAccentColor(base.slug),
+    membershipStatus: base.membershipStatus,
   };
 }

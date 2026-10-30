@@ -8,13 +8,17 @@ import { formatEventUpcomingLine } from "@/lib/events/format-event-datetime";
 import type { CommunityListItem } from "@/types/community";
 import type { ShellUser } from "@/types/shell-user";
 
-function quickActions(communityId: string) {
-  const q = encodeURIComponent(communityId);
-  return [
-    { label: "Create a post", href: `/create?tab=post&community=${q}` },
-    { label: "Create an event", href: `/create?tab=event&community=${q}` },
-    { label: "Create a community", href: "/create?tab=community" },
-  ] as const;
+function quickActions(communityId: string | undefined, canCreateInCommunity: boolean) {
+  const q = communityId ? encodeURIComponent(communityId) : "";
+  const items: { label: string; href: string }[] = [];
+  if (canCreateInCommunity && communityId) {
+    items.push(
+      { label: "Create a post", href: `/create?tab=post&community=${q}` },
+      { label: "Create an event", href: `/create?tab=event&community=${q}` },
+    );
+  }
+  items.push({ label: "Create a community", href: "/create?tab=community" });
+  return items;
 }
 
 type EventRow = {
@@ -26,6 +30,8 @@ type EventRow = {
 type Props = {
   user: ShellUser;
   communityId?: string;
+  /** Active member of the hub community (not pending / not browsing only). */
+  canCreateInCommunity?: boolean;
   memberships: CommunityListItem[];
   upcomingEvents: EventRow[];
 };
@@ -40,10 +46,11 @@ function membershipLabel(c: CommunityListItem): string {
 export function CommunityDetailSidebar({
   user,
   communityId,
+  canCreateInCommunity = false,
   memberships,
   upcomingEvents,
 }: Props) {
-  const actions = communityId ? quickActions(communityId) : quickActions("");
+  const actions = quickActions(communityId, canCreateInCommunity);
 
   return (
     <div className="relative space-y-5 pb-14">

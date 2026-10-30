@@ -1,9 +1,26 @@
-import type { MembershipRole, MembershipStatus } from "@/types/community";
+import type {
+  MembershipRole,
+  MembershipStatus,
+  SidebarCommunity,
+} from "@/types/community";
 
 export function isActiveMember(
   status: MembershipStatus | null | undefined,
 ): boolean {
   return status === "active";
+}
+
+/** Post, event, and channel creation require an active membership (not pending). */
+export function canCreateInCommunity(
+  status: MembershipStatus | null | undefined,
+): boolean {
+  return isActiveMember(status);
+}
+
+export function activeSidebarMemberships(
+  memberships: SidebarCommunity[],
+): SidebarCommunity[] {
+  return memberships.filter((m) => canCreateInCommunity(m.membershipStatus));
 }
 
 export function canManageCommunity(

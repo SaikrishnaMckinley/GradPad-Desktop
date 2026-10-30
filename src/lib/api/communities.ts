@@ -24,6 +24,10 @@ export async function fetchCommunityMembersRaw(communityId: string) {
   return serverFetchJson<unknown>(`community/${communityId}/members/`);
 }
 
+export async function fetchCommunityJoinRequestsRaw(communityId: string) {
+  return serverFetchJson<unknown>(`requests/community/${communityId}/`);
+}
+
 export async function fetchCommunityUpcomingEventsRaw(communityId: string) {
   return serverFetchJson<unknown>(`community/${communityId}/events/upcoming/`);
 }

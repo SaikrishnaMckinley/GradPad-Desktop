@@ -37,6 +37,8 @@ export function LiveCommunityChannel({ initial }: Props) {
       rightRail={
         <CommunityDetailSidebar
           user={initial.shellUser}
+          communityId={initial.isMember ? initial.community.id : undefined}
+          canCreateInCommunity={initial.isMember}
           memberships={initial.memberships}
           upcomingEvents={[]}
         />

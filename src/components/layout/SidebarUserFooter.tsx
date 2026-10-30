@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { MoreHorizontal } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { SidebarAccountMenu } from "@/components/layout/SidebarAccountMenu";
 import type { ShellUser } from "@/types/shell-user";
 
 type SidebarUserFooterProps = {
@@ -34,13 +34,7 @@ export function SidebarUserFooter({ shellUser }: SidebarUserFooterProps) {
             View profile
           </Link>
         </div>
-        <button
-          type="button"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-card hover:text-foreground"
-          aria-label="Account menu"
-        >
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
+        <SidebarAccountMenu profileHref={profileHref} />
       </div>
     </div>
   );

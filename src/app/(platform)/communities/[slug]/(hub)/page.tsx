@@ -5,6 +5,8 @@ import { loadCommunityHub } from "@/lib/communities/load-community-hub";
 import { DEV_COMMUNITIES } from "@/lib/fixtures/dev-shell-data";
 import { isDemoStaticUi } from "@/lib/demo-mode";
 
+export const instant = true;
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
