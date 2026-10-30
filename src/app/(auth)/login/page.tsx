@@ -4,7 +4,7 @@ import { AuthFormCard } from "@/components/auth/AuthFormCard";
 import { LoginForm } from "@/components/auth/LoginForm";
 
 type Props = {
-  searchParams: Promise<{ next?: string; error?: string; session?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; session?: string; communityId?: string }>;
 };
 
 export const metadata = { title: "Sign in" };
@@ -15,7 +15,11 @@ async function LoginContent({ searchParams }: Props) {
   return (
     <AuthFormCard
       title="Welcome back"
-      description="Sign in with your Grad Pad staging account."
+      description={
+        params.communityId
+          ? "Sign in to send your join request for the community from your invite link."
+          : "Sign in with your Grad Pad staging account."
+      }
     >
       {params.error === "auth_callback" && (
         <p className="mb-4 rounded-xl border border-error/30 bg-red-50 px-3 py-2 text-sm text-error">

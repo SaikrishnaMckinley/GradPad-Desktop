@@ -3,8 +3,8 @@ import { unwrapList } from "@/lib/api/parse-list";
 
 const LIST_BUCKETS = ["owned", "admin", "member", "requested", "suggested"] as const;
 
-/** Sidebar + hub: only communities the user belongs to (not suggested catalog). */
-export const MEMBERSHIP_LIST_BUCKETS = ["owned", "admin", "member"] as const;
+/** Sidebar + hub: memberships plus outstanding join requests (not suggested catalog). */
+export const MEMBERSHIP_LIST_BUCKETS = ["owned", "admin", "member", "requested"] as const;
 
 /**
  * `GET community/list/` returns categorized buckets (gradpad-api UserMiniCommunityListView).
@@ -81,6 +81,8 @@ export function flattenUserMembershipCommunities(data: unknown): ApiCommunityRec
         record.is_member = true;
       } else if (key === "member") {
         record.is_member = true;
+      } else if (key === "requested") {
+        record.applied = true;
       }
       merged.push(record);
     }

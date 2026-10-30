@@ -72,13 +72,17 @@ export async function getApiShellCommunityContext(): Promise<ShellCommunityConte
     }
   }
 
+  const matchesCookie = (m: SidebarCommunity) =>
+    m.slug === cookieSlug || m.id === cookieSlug;
+
   const activeSlug =
-    cookieSlug && memberships.some((m) => m.slug === cookieSlug)
+    cookieSlug && memberships.some(matchesCookie)
       ? cookieSlug
       : memberships[0].slug;
 
   const activeCommunity =
-    memberships.find((m) => m.slug === activeSlug) ?? memberships[0];
+    memberships.find((m) => m.slug === activeSlug || m.id === activeSlug) ??
+    memberships[0];
 
   const channels = channelsByCommunityId[activeCommunity.id] ?? [];
 

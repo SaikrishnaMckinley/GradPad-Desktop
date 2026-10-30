@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { clearAuthNextPath, readAuthNextPath } from "@/lib/auth/auth-next";
+import { clearCommunityInviteContext } from "@/lib/communities/community-invite-context";
 import { signInWithEmail } from "@/lib/auth/client-auth";
+import { readCommunityInviteContext } from "@/lib/communities/community-invite-context";
 import { signInSchema } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +41,18 @@ export function LoginForm({ next, sessionMessage }: LoginFormProps) {
         setError(result.error);
         return;
       }
-      router.push(next.startsWith("/") ? next : "/home");
+      const invite = readCommunityInviteContext();
+      const storedNext = readAuthNextPath();
+      const destination =
+        (next.startsWith("/") && next !== "/home" ? next : null) ??
+        storedNext ??
+        invite?.redirect ??
+        "/home";
+      clearAuthNextPath();
+      if (destination.includes("/community-invite/complete")) {
+        clearCommunityInviteContext();
+      }
+      router.push(destination);
       router.refresh();
     } finally {
       setPending(false);

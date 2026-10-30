@@ -1,6 +1,7 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { Suspense, useLayoutEffect } from "react";
+import { CommunityJoinStatusToast } from "@/components/communities/CommunityJoinStatusToast";
 import { CommunityDetailContent } from "@/components/communities/CommunityDetailContent";
 import { CommunityDetailSidebar } from "@/components/communities/CommunityDetailSidebar";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -23,6 +24,10 @@ export function LiveCommunityHub({ initialHub }: Props) {
   }, [initialHub]);
 
   return (
+    <>
+      <Suspense fallback={null}>
+        <CommunityJoinStatusToast />
+      </Suspense>
     <PageContainer
       withRightRail
       rightRail={
@@ -45,5 +50,6 @@ export function LiveCommunityHub({ initialHub }: Props) {
         isMember={initialHub.isMember}
       />
     </PageContainer>
+    </>
   );
 }

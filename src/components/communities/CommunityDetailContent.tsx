@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { CommunityShareLinkButton } from "@/components/communities/CommunityShareLinkButton";
 import { CommunityCoverImage } from "@/components/communities/CommunityCoverImage";
 import { CommunityEmptyState } from "@/components/communities/CommunityEmptyState";
 import { CommunityMembershipActions } from "@/components/communities/CommunityMembershipActions";
@@ -89,10 +90,23 @@ export function CommunityDetailContent({
     `A welcoming space for ${community.name} members to reconnect, exchange ideas, and take part in local events.`;
   const postsSubtitle = `Latest updates from ${community.name}`;
   const canSeeContent = isMember || community.visibility === "public";
+  const isPendingJoin = community.membershipStatus === "pending";
   const extraMembers = Math.max(community.memberCount - membersPreview.length, 0);
 
   return (
     <>
+      {isPendingJoin ? (
+        <div
+          className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+          role="status"
+        >
+          <p className="font-semibold">Join request pending</p>
+          <p className="mt-0.5 text-amber-900/90">
+            Your request to join {community.name} was sent. An admin will review it soon—you&apos;ll
+            get full access once approved.
+          </p>
+        </div>
+      ) : null}
       <div className="overflow-hidden rounded-[22px] border border-border bg-card shadow-card">
         <div className="relative h-44 md:h-52">
           {useFixtureCover ? (
@@ -132,13 +146,10 @@ export function CommunityDetailContent({
                   ) : null}
                 </div>
                 <div className="flex shrink-0 gap-1">
-                  <button
-                    type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-page-secondary"
-                    aria-label="Share community"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </button>
+                  <CommunityShareLinkButton
+                    communityId={community.id}
+                    communityName={community.name}
+                  />
                   <CommunityMoreMenu communitySlug={community.slug} canManage={canManage} />
                 </div>
               </div>

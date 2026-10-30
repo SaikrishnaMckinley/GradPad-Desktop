@@ -1,6 +1,7 @@
 import "server-only";
 
 import { flattenUserMembershipCommunities } from "@/lib/api/community-list";
+import { publicFetchJson } from "@/lib/api/public-fetch";
 import { serverFetchJson } from "@/lib/api/server-fetch";
 import type { ApiCommunityRecord } from "@/lib/api/map-community";
 
@@ -14,6 +15,11 @@ export async function fetchAllCommunitiesRaw() {
 
 export async function fetchCommunityDetailRaw(communityId: string) {
   return serverFetchJson<ApiCommunityRecord>(`community/${communityId}/`);
+}
+
+/** Public preview for share / invite links (gradpad-web `community/open/<id>/`). */
+export async function fetchCommunityOpenRaw(communityId: string) {
+  return publicFetchJson<ApiCommunityRecord>(`community/open/${communityId}/`);
 }
 
 export async function fetchCommunityChannelsRaw(communityId: string) {

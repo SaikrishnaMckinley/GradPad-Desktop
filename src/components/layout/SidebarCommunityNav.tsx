@@ -76,7 +76,11 @@ export function SidebarCommunityNav({ communityContext }: Props) {
               <p className="truncate text-sm font-semibold text-foreground">
                 {activeCommunity.name}
               </p>
-              <p className="text-xs text-muted-foreground">Active community</p>
+              <p className="text-xs text-muted-foreground">
+                {activeCommunity.membershipStatus === "pending"
+                  ? "Join request pending"
+                  : "Active community"}
+              </p>
             </div>
           </div>
         </div>
@@ -173,7 +177,12 @@ export function SidebarCommunityNav({ communityContext }: Props) {
                       logoUrl={community.logoUrl}
                       size="sm"
                     />
-                    <span className="truncate">{community.name}</span>
+                    <span className="min-w-0 flex-1 truncate">{community.name}</span>
+                    {community.membershipStatus === "pending" ? (
+                      <span className="shrink-0 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                        Pending
+                      </span>
+                    ) : null}
                   </Link>
                 </li>
               );

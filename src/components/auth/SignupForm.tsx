@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { signUpWithEmail } from "@/lib/auth/client-auth";
 import { storeSignupPayloadForOtp } from "@/components/auth/VerifyOtpForm";
+import { storeAuthNextPath } from "@/lib/auth/auth-next";
 import { registerAccount, type RegisterState } from "@/lib/auth/register-action";
 import { signUpSchema } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 type SignupFormProps = {
   /** When true, server uses service_role to create user without verification email. */
   adminSignupEnabled: boolean;
+  /** Post-OTP redirect (e.g. community invite complete). */
+  nextAfterVerify?: string;
 };
 
 function AdminSignupForm() {
@@ -35,7 +38,7 @@ function isExistingAccountError(message: string): boolean {
   return lower.includes("already exists") || lower.includes("already registered");
 }
 
-function ClientSignupForm() {
+function ClientSignupForm({ nextAfterVerify }: { nextAfterVerify?: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +62,9 @@ function ClientSignupForm() {
 
     setPending(true);
     try {
+      if (nextAfterVerify?.startsWith("/")) {
+        storeAuthNextPath(nextAfterVerify);
+      }
       const { confirmPassword: _confirm, ...signupPayload } = parsed.data;
       const result = await signUpWithEmail(signupPayload);
       if ("error" in result && result.error) {
@@ -93,8 +99,12 @@ function ClientSignupForm() {
   );
 }
 
-export function SignupForm({ adminSignupEnabled }: SignupFormProps) {
-  return adminSignupEnabled ? <AdminSignupForm /> : <ClientSignupForm />;
+export function SignupForm({ adminSignupEnabled, nextAfterVerify }: SignupFormProps) {
+  return adminSignupEnabled ? (
+    <AdminSignupForm />
+  ) : (
+    <ClientSignupForm nextAfterVerify={nextAfterVerify} />
+  );
 }
 
 function SignupFields() {

@@ -9,7 +9,11 @@ function isAuthRoute(pathname: string) {
 }
 
 function isPublicRoute(pathname: string) {
-  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  if (PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+    return true;
+  }
+  // Guest landing from community share links (gradpad-web `/communities/:id/community-invite`).
+  return /^\/communities\/[^/]+\/community-invite\/?$/.test(pathname);
 }
 
 function isDemoStaticUi() {
@@ -28,6 +32,10 @@ export async function middleware(request: NextRequest) {
   const demo = isDemoStaticUi();
 
   if (authed && isAuthRoute(pathname)) {
+    const next = request.nextUrl.searchParams.get("next");
+    if (next?.startsWith("/") && !next.startsWith("//")) {
+      return NextResponse.redirect(new URL(next, request.url));
+    }
     return NextResponse.redirect(new URL("/home", request.url));
   }
 

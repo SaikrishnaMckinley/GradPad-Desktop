@@ -50,6 +50,8 @@ export async function loadCommunityHub(routeKey: string): Promise<CommunityHubPa
     canManage,
     isMember: member,
     shellUser: resolveShellUser(session, true),
-    memberships: memberships.filter((m) => isActiveMember(m.membershipStatus)),
+    memberships: memberships.filter(
+      (m) => isActiveMember(m.membershipStatus) || m.membershipStatus === "pending",
+    ),
   };
 }

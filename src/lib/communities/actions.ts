@@ -16,7 +16,10 @@ import {
   serverFetchPost,
   readStagingActionError,
 } from "@/lib/api/server-fetch";
-import { mapSidebarCommunity } from "@/lib/api/map-community";
+import { fetchCommunityDetailRaw } from "@/lib/api/communities";
+import { mapCommunityDetail, mapSidebarCommunity } from "@/lib/api/map-community";
+import { communityHubAfterInvitePath } from "@/lib/communities/community-invite-url";
+import { resolveCommunityId } from "@/lib/communities/api-queries";
 import { isDemoStaticUi, usesStagingApi } from "@/lib/demo-mode";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -366,11 +369,12 @@ export async function joinCommunityAction(communityId: string, slug: string): Pr
     if (!result.ok) {
       return { error: "Could not send join request. Try again." };
     }
-    await setActiveCommunitySlug(slug);
+    await setActiveCommunitySlug(communityId);
     revalidateCommunity(slug);
     revalidatePath("/", "layout");
     return {
       success: "Join request sent. You'll be notified when approved.",
+      redirectTo: communityHubAfterInvitePath(communityId, "pending"),
     };
   }
 
@@ -393,7 +397,56 @@ export async function joinCommunityAction(communityId: string, slug: string): Pr
       status === "pending"
         ? "Membership request sent."
         : "You joined the community.",
+    redirectTo: `/communities/${slug}`,
   };
+}
+
+/**
+ * After opening a share link while signed in (gradpad-web `checkAndHandleCommunityAccess`).
+ */
+export async function completeCommunityInviteFromLink(routeKey: string): Promise<ActionResult> {
+  const userId = await requireUserId();
+  if (typeof userId !== "string") return userId;
+
+  if (!usesStagingApi()) {
+    return { error: "Community invite links are only supported against staging." };
+  }
+
+  const communityId = await resolveCommunityId(routeKey);
+  if (!communityId) {
+    return { error: "Community not found.", redirectTo: "/communities/discover" };
+  }
+
+  const detail = await fetchCommunityDetailRaw(communityId);
+  if (!detail.ok || !detail.data) {
+    return { error: "Community not found.", redirectTo: "/communities/discover" };
+  }
+
+  const community = mapCommunityDetail(detail.data);
+  if (!community) {
+    return { error: "Community not found.", redirectTo: "/communities/discover" };
+  }
+
+  const raw = detail.data;
+  if (raw.is_member || raw.is_owner || raw.is_admin) {
+    await setActiveCommunitySlug(community.id);
+    revalidatePath("/", "layout");
+    return {
+      success: "Welcome back!",
+      redirectTo: communityHubAfterInvitePath(community.id),
+    };
+  }
+
+  if (raw.applied) {
+    await setActiveCommunitySlug(community.id);
+    revalidatePath("/", "layout");
+    return {
+      success: "Your join request is pending approval.",
+      redirectTo: communityHubAfterInvitePath(community.id, "pending"),
+    };
+  }
+
+  return joinCommunityAction(community.id, community.slug);
 }
 
 export async function leaveCommunityAction(

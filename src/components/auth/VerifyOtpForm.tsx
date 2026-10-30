@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { clearAuthNextPath, readAuthNextPath } from "@/lib/auth/auth-next";
 import { resendSignupOtp, verifySignupOtp } from "@/lib/auth/client-auth";
+import {
+  clearCommunityInviteContext,
+  readCommunityInviteContext,
+} from "@/lib/communities/community-invite-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -57,7 +62,15 @@ export function VerifyOtpForm({ initialEmail }: VerifyOtpFormProps) {
         return;
       }
       sessionStorage.removeItem(SIGNUP_PAYLOAD_KEY);
-      router.push("/home");
+      const invite = readCommunityInviteContext();
+      const storedNext = readAuthNextPath();
+      const next =
+        (storedNext?.startsWith("/") ? storedNext : null) ??
+        (invite?.redirect?.startsWith("/") ? invite.redirect : null) ??
+        "/home";
+      clearAuthNextPath();
+      clearCommunityInviteContext();
+      router.push(next);
       router.refresh();
     } finally {
       setPending(false);
