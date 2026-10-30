@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { CalendarDays, FileText, Hash, Users } from "lucide-react";
 import { ChannelForm } from "@/components/communities/ChannelForm";
 import { CommunityForm } from "@/components/communities/CommunityForm";
@@ -9,6 +10,7 @@ import { useShellData } from "@/components/layout/ShellDataProvider";
 import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { createChannel, createCommunity } from "@/lib/communities/actions";
+import { EventCreateForm } from "@/components/events/EventCreateForm";
 import { PostCreateForm } from "@/components/posts/PostCreateForm";
 import { slugifyCommunityName } from "@/lib/communities/slug";
 import { cn } from "@/lib/utils/cn";
@@ -21,6 +23,7 @@ type Props = {
   prefillCommunityId: string | null;
   prefillCommunityRouteKey: string | null;
   prefillChannelId: string | null;
+  payoutSetupNotice: string | null;
 };
 
 const TABS: { id: CreateTab; label: string; icon: typeof FileText; href: string }[] = [
@@ -69,7 +72,7 @@ function RightRail({ tab }: { tab: CreateTab }) {
         <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
           <li>• Pick a clear title and time zone.</li>
           <li>• Say whether the event is in person or online.</li>
-          <li>• Event creation on staging is coming soon in desktop.</li>
+          <li>• Paid events need a verified Stripe payout account (test mode on staging).</li>
         </ul>
       </Card>
     );
@@ -94,6 +97,7 @@ export function CreateHub({
   prefillCommunityId,
   prefillCommunityRouteKey,
   prefillChannelId,
+  payoutSetupNotice,
 }: Props) {
   const { shellUser, communityContext } = useShellData();
   const userDisplayName = shellUser.fullName;
@@ -102,28 +106,61 @@ export function CreateHub({
   const defaultCommunityRouteKey =
     prefillCommunityRouteKey ?? communityContext.activeSlug ?? null;
 
+  const tabBar = (
+    <div className="flex w-full border-b border-border p-2">
+      {TABS.map(({ id, label, icon: Icon, href }) => {
+        const active = activeTab === id;
+        return (
+          <Link
+            key={id}
+            href={href}
+            scroll={false}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium transition-colors",
+              active ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </Link>
+        );
+      })}
+    </div>
+  );
+
+  if (activeTab === "event") {
+    return (
+      <PageContainer withRightRail rightRail={<RightRail tab="event" />}>
+        <Card className="w-full overflow-hidden">{tabBar}</Card>
+        <div className="mt-4 w-full">
+          <div className="mb-4 w-full">
+            <h1 className="text-xl font-semibold tracking-tight">Create event</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Matches gradpad-web: schedule, location search, tickets, hosts, donations, and payout.
+            </p>
+          </div>
+          {stagingApi ? (
+            <Suspense fallback={<p className="text-sm text-muted-foreground">Loading form…</p>}>
+              <EventCreateForm
+                memberships={communityContext.memberships}
+                defaultCommunityId={defaultCommunityId}
+                payoutSetupNotice={payoutSetupNotice}
+              />
+            </Suspense>
+          ) : (
+            <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+              Event creation uses the staging API. Set NEXT_PUBLIC_DEMO_STATIC_UI=false and sign in.
+            </p>
+          )}
+        </div>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer withRightRail rightRail={<RightRail tab={activeTab} />}>
-      <Card className="overflow-hidden">
-        <div className="flex border-b border-border p-2">
-          {TABS.map(({ id, label, icon: Icon, href }) => {
-            const active = activeTab === id;
-            return (
-              <Link
-                key={id}
-                href={href}
-                scroll={false}
-                className={cn(
-                  "flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium transition-colors",
-                  active ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
-            );
-          })}
-        </div>
+      <Card className="w-full overflow-hidden">
+        {tabBar}
 
         {activeTab === "channel" ? (
           <div className="p-6 md:p-8">
@@ -167,20 +204,6 @@ export function CreateHub({
                 joinApprovalRequired: false,
               }}
             />
-          </div>
-        ) : activeTab === "event" ? (
-          <div className="p-6 md:p-8">
-            <div className="mb-6 flex items-center gap-4">
-              <Avatar alt={userDisplayName} fallback={userDisplayName} size="lg" />
-              <div>
-                <h1 className="text-xl font-semibold">Create an event</h1>
-                <p className="text-sm text-muted-foreground">Schedule a gathering for your community</p>
-              </div>
-            </div>
-            <p className="rounded-xl border border-border bg-page-secondary/80 px-4 py-3 text-sm text-muted-foreground">
-              Event creation is not wired to staging in desktop yet. Use gradpad-web or check back
-              soon.
-            </p>
           </div>
         ) : (
           <div className="p-6 md:p-8">
