@@ -1,8 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { DEV_CURRENT_USER } from "@/lib/fixtures/dev-shell-data";
+import { useShellData } from "@/components/layout/ShellDataProvider";
 import { cn } from "@/lib/utils/cn";
 
 const UPCOMING = [
@@ -20,27 +22,42 @@ const railHeader = "px-5 pb-0 pt-5";
 const railBody = "space-y-5 px-5 pb-6 pt-5";
 
 export function HomeRightSidebar() {
+  const { shellUser, communityContext } = useShellData();
+  const communityCount = communityContext.memberships.length;
+  const profileHref = shellUser.username
+    ? `/profile/${shellUser.username}`
+    : "/settings/profile";
+
   return (
     <div className="space-y-5 pb-2">
       <Card className="shadow-card">
         <CardContent className="px-5 pb-6 pt-5">
           <div className="flex flex-col items-center text-center">
-            <Avatar
-              alt={DEV_CURRENT_USER.fullName}
-              fallback={DEV_CURRENT_USER.fullName}
-              size="lg"
-            />
-            <h2 className="mt-4 text-[15px] font-semibold">{DEV_CURRENT_USER.fullName}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">{DEV_CURRENT_USER.headline}</p>
+            <Link href={profileHref} className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30">
+              <Avatar
+                alt={shellUser.fullName}
+                fallback={shellUser.fullName}
+                src={shellUser.avatarUrl}
+                size="lg"
+              />
+            </Link>
+            <Link href={profileHref} className="mt-4 hover:underline">
+              <h2 className="text-[15px] font-semibold">{shellUser.fullName}</h2>
+            </Link>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {shellUser.headline || "GradPad member"}
+            </p>
             <div className="mt-5 grid w-full grid-cols-2 gap-3 border-t border-border pt-5">
               <div>
-                <p className="text-base font-semibold">286</p>
-                <p className="text-xs text-muted-foreground">Connections</p>
+                <p className="text-base font-semibold">{communityCount}</p>
+                <p className="text-xs text-muted-foreground">
+                  {communityCount === 1 ? "Community" : "Communities"}
+                </p>
               </div>
-              <div>
-                <p className="text-base font-semibold">12</p>
-                <p className="text-xs text-muted-foreground">Communities</p>
-              </div>
+              <Link href={profileHref} className="rounded-lg transition-colors hover:bg-page-secondary">
+                <p className="text-base font-semibold text-primary">View</p>
+                <p className="text-xs text-muted-foreground">Profile</p>
+              </Link>
             </div>
           </div>
         </CardContent>

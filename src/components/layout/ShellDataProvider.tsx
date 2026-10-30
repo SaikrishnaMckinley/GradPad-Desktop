@@ -8,10 +8,12 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { mergeHubIntoShellContext } from "@/lib/shell/merge-hub-shell";
+import { applyPathToShellContext } from "@/lib/shell/shell-context-sync";
 import { readShellCache, writeShellCache } from "@/lib/shell/shell-cache";
 import type { CommunityHubPayload } from "@/lib/communities/hub-cache";
 import { resolveShellUser } from "@/lib/auth/resolve-shell-user";
@@ -52,33 +54,11 @@ export function useShellData(): ShellData {
 
 const PLACEHOLDER_USER = resolveShellUser(null, true);
 
-function syncActiveCommunityFromPath(
-  pathname: string,
-  prev: ShellCommunityContext,
-): ShellCommunityContext {
-  const match = pathname.match(/^\/communities\/([^/]+)/);
-  const routeKey = match?.[1];
-  if (!routeKey || routeKey === "new" || routeKey === "discover") {
-    return prev;
-  }
-
-  const membership =
-    prev.memberships.find((m) => m.slug === routeKey || m.id === routeKey) ?? null;
-  if (!membership) {
-    return { ...prev, activeSlug: routeKey };
-  }
-
-  return {
-    ...prev,
-    activeSlug: membership.slug,
-    activeCommunity: membership,
-    channels: prev.channelsByCommunityId[membership.id] ?? [],
-  };
-}
-
 export function ShellDataProvider({ children }: { children: ReactNode }) {
   const demo = isDemoMode();
   const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
 
   const [shellUser, setShellUser] = useState<ShellUser>(PLACEHOLDER_USER);
   const [communityContext, setCommunityContext] = useState<ShellCommunityContext>(() =>
@@ -96,10 +76,8 @@ export function ShellDataProvider({ children }: { children: ReactNode }) {
         }
         setShellUser(body.user);
         setCommunityContext((prev) => {
-          const merged = syncActiveCommunityFromPath(
-            pathname,
-            body.communityContext ?? prev,
-          );
+          const incoming = body.communityContext ?? prev;
+          const merged = applyPathToShellContext(pathnameRef.current, prev, incoming);
           writeShellCache(body.user!, merged);
           return merged;
         });
@@ -108,13 +86,15 @@ export function ShellDataProvider({ children }: { children: ReactNode }) {
       .catch(() => {
         setHydrated(true);
       });
-  }, [pathname]);
+  }, []);
 
   useLayoutEffect(() => {
     const cached = readShellCache();
     if (!cached) return;
     setShellUser(cached.user);
-    setCommunityContext(syncActiveCommunityFromPath(pathname, cached.communityContext));
+    setCommunityContext(
+      applyPathToShellContext(pathname, cached.communityContext, cached.communityContext),
+    );
     setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- restore cache once on mount
   }, []);
@@ -124,8 +104,12 @@ export function ShellDataProvider({ children }: { children: ReactNode }) {
   }, [loadShell]);
 
   useEffect(() => {
-    setCommunityContext((prev) => syncActiveCommunityFromPath(pathname, prev));
-  }, [pathname]);
+    setCommunityContext((prev) => {
+      const merged = applyPathToShellContext(pathname, prev, prev);
+      writeShellCache(shellUser, merged);
+      return merged;
+    });
+  }, [pathname, shellUser]);
 
   useEffect(() => {
     const onRefresh = () => loadShell();
@@ -139,10 +123,8 @@ export function ShellDataProvider({ children }: { children: ReactNode }) {
       if (!hub) return;
       setShellUser(hub.shellUser);
       setCommunityContext((prev) => {
-        const merged = syncActiveCommunityFromPath(
-          pathname,
-          mergeHubIntoShellContext(prev, hub),
-        );
+        const withHub = mergeHubIntoShellContext(prev, hub);
+        const merged = applyPathToShellContext(pathname, withHub, withHub);
         writeShellCache(hub.shellUser, merged);
         return merged;
       });

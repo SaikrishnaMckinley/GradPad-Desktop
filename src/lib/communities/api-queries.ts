@@ -18,6 +18,7 @@ import {
   type ApiCommunityRecord,
 } from "@/lib/api/map-community";
 import { unwrapList } from "@/lib/api/parse-list";
+import { mapPostsResponse } from "@/lib/posts/map-post";
 import type { CommunityDetail, CommunityListItem, CommunityMemberRow } from "@/types/community";
 
 const UUID_RE =
@@ -151,34 +152,25 @@ export async function getCommunityEventsPreview(communityId: string, limit = 4) 
     });
 }
 
-type ApiPost = {
-  id: string;
-  title?: string | null;
-  content?: string | null;
-  created_at?: string;
-  author?: { first_name?: string; last_name?: string; full_name?: string };
-  user?: { first_name?: string; last_name?: string; full_name?: string };
-};
-
 export async function getCommunityPostsPreview(communityId: string, limit = 5) {
   const result = await fetchCommunityPostsRaw(communityId, limit);
   if (!result.ok || !result.data) return [];
-  return unwrapList(result.data).map((row) => {
-    const post = row as ApiPost;
-    const author = post.author ?? post.user;
-    const authorName =
-      author?.full_name ??
-      ([author?.first_name, author?.last_name].filter(Boolean).join(" ").trim() || "Member");
-    return {
-      id: post.id,
-      title: post.title ?? null,
-      content: post.content ?? "",
-      createdAt: post.created_at ?? new Date().toISOString(),
-      authorName,
-      authorUsername: null,
-      authorAvatarUrl: null,
-    };
-  });
+  return mapPostsResponse(result.data).map((post) => ({
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    createdAt: post.createdAt,
+    authorName: post.authorName,
+    authorAvatarUrl: post.authorAvatarUrl,
+    canEdit: post.canEdit,
+    channelName: post.channelName,
+    media: post.media,
+    likesCount: post.likesCount,
+    likedByMe: post.likedByMe,
+    commentAllow: post.commentAllow,
+    comments: post.comments,
+    shareCount: post.shareCount,
+  }));
 }
 
 type ApiMember = {

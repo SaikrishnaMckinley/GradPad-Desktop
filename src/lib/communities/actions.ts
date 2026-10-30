@@ -7,12 +7,17 @@ import { canAssignRole, canManageCommunity } from "@/lib/communities/permissions
 import { getCommunityBySlug } from "@/lib/communities/queries";
 import { getSessionProfile } from "@/lib/auth/get-session-profile";
 import { getSessionTokens } from "@/lib/auth/session-cookies";
+import { stagingCreateChannel } from "@/lib/api/staging-channel";
 import { stagingCreateCommunity } from "@/lib/api/staging-community";
 import { serverFetchForm, serverFetchPost, readStagingActionError } from "@/lib/api/server-fetch";
 import { mapSidebarCommunity } from "@/lib/api/map-community";
 import { isDemoStaticUi, usesStagingApi } from "@/lib/demo-mode";
 import { createClient } from "@/lib/supabase/server";
-import { communityFormSchema, memberRoleSchema } from "@/lib/validations/community";
+import {
+  channelFormSchema,
+  communityFormSchema,
+  memberRoleSchema,
+} from "@/lib/validations/community";
 import type { MembershipRole, MembershipStatus } from "@/types/community";
 
 export type ActionResult = {
@@ -48,6 +53,11 @@ function revalidateCommunity(slug: string) {
   revalidatePath(`/communities/${slug}/members`);
   revalidatePath("/home");
   revalidatePath("/", "layout");
+}
+
+function revalidateChannel(communityRouteKey: string, channelSlug: string) {
+  revalidateCommunity(communityRouteKey);
+  revalidatePath(`/communities/${communityRouteKey}/channels/${channelSlug}`);
 }
 
 function stagingCommunityFormData(
@@ -165,6 +175,66 @@ export async function createCommunity(
   await setActiveCommunitySlug(parsed.data.slug);
   revalidateCommunity(parsed.data.slug);
   redirect(`/communities/${parsed.data.slug}/edit?created=1`);
+}
+
+export async function createChannel(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  if (!usesStagingApi()) {
+    return {
+      error:
+        "Channel creation uses the staging API. Set NEXT_PUBLIC_DEMO_STATIC_UI=false and sign in with staging.",
+    };
+  }
+
+  const { access } = await getSessionTokens();
+  if (!access) {
+    return { error: "Sign in again — your session cookie is missing." };
+  }
+
+  const parsed = channelFormSchema.safeParse({
+    communityId: formData.get("communityId"),
+    communityRouteKey: formData.get("communityRouteKey"),
+    name: formData.get("name"),
+    description: formData.get("description"),
+    visibility: formData.get("visibility"),
+    passcode: formData.get("passcode"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const logo = formData.get("logo");
+  const image = formData.get("image");
+  if (!(logo instanceof File) || logo.size === 0) {
+    return { error: "Add a channel logo using the preview card above." };
+  }
+
+  const result = await stagingCreateChannel(access, parsed.data.communityId, {
+    name: parsed.data.name,
+    description: parsed.data.description,
+    visibility: parsed.data.visibility,
+    passcode: parsed.data.passcode,
+    logo,
+    image: image instanceof File ? image : null,
+  });
+
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  const communityRouteKey = parsed.data.communityRouteKey;
+  const channelSlug = result.channel.slug;
+  revalidateChannel(communityRouteKey, channelSlug);
+  revalidatePath("/", "layout");
+
+  return {
+    success: "Channel created.",
+    redirectTo: `/communities/${communityRouteKey}/channels/${channelSlug}`,
+    refreshShell: true,
+  };
 }
 
 export async function updateCommunity(

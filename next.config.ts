@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  experimental: {
+    // Post create/edit Server Actions send multipart media (default limit is 1 MB).
+    serverActions: {
+      bodySizeLimit: "30mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

@@ -12,6 +12,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { communityAccentColor, communityInitials } from "@/lib/communities/slug";
 import type { CommunityDetail } from "@/types/community";
+import type { PostCommentRow } from "@/lib/posts/map-post";
 import { cn } from "@/lib/utils/cn";
 
 export type CommunityChannelRow = {
@@ -34,7 +35,16 @@ export type CommunityPostRow = {
   title: string | null;
   content: string;
   authorName: string;
+  authorAvatarUrl?: string | null;
   createdAt: string;
+  canEdit?: boolean;
+  channelName?: string | null;
+  media?: { url: string; type: string }[];
+  likesCount?: number;
+  likedByMe?: boolean;
+  commentAllow?: boolean;
+  comments?: PostCommentRow[];
+  shareCount?: number;
 };
 
 type MemberPreview = {
@@ -186,13 +196,13 @@ export function CommunityDetailContent({
             <h2 className="text-lg font-semibold">Channels</h2>
             <p className="text-sm text-muted-foreground">Discuss topics with your community</p>
           </div>
-          <button
-            type="button"
+          <Link
+            href={`/create?tab=channel&community=${encodeURIComponent(community.id)}`}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
-            aria-label="Add channel"
+            aria-label="Create channel"
           >
             <Plus className="h-4 w-4" />
-          </button>
+          </Link>
         </div>
         {!canSeeContent ? (
           <Card className="p-5 text-sm text-muted-foreground shadow-card">
@@ -221,7 +231,7 @@ export function CommunityDetailContent({
                     </div>
                   </div>
                   <Link
-                    href={`/communities/${community.slug}#posts`}
+                    href={`/communities/${community.slug}/channels/${channel.slug}`}
                     className={cn(buttonVariants({ variant: "secondary" }), "shrink-0")}
                   >
                     Open channel
@@ -307,12 +317,22 @@ export function CommunityDetailContent({
             {posts.map((post) => (
               <CommunityPostPreviewCard
                 key={post.id}
+                postId={post.id}
+                communityId={community.id}
                 communityName={community.name}
-                channelName={channels[0]?.name ?? null}
+                channelName={post.channelName ?? null}
                 authorName={post.authorName}
+                authorAvatarUrl={post.authorAvatarUrl}
                 createdAt={post.createdAt}
                 title={post.title}
                 content={post.content}
+                media={post.media ?? []}
+                canEdit={post.canEdit}
+                likesCount={post.likesCount}
+                likedByMe={post.likedByMe}
+                commentAllow={post.commentAllow}
+                comments={post.comments}
+                shareCount={post.shareCount}
               />
             ))}
           </div>

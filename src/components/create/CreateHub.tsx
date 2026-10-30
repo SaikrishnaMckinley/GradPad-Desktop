@@ -1,29 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, FileText, Users } from "lucide-react";
+import { CalendarDays, FileText, Hash, Users } from "lucide-react";
+import { ChannelForm } from "@/components/communities/ChannelForm";
 import { CommunityForm } from "@/components/communities/CommunityForm";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useShellData } from "@/components/layout/ShellDataProvider";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { createCommunity } from "@/lib/communities/actions";
+import { createChannel, createCommunity } from "@/lib/communities/actions";
+import { PostCreateForm } from "@/components/posts/PostCreateForm";
 import { slugifyCommunityName } from "@/lib/communities/slug";
 import { cn } from "@/lib/utils/cn";
 
-export type CreateTab = "post" | "event" | "community";
+export type CreateTab = "post" | "event" | "community" | "channel";
 
 type Props = {
   activeTab: CreateTab;
   stagingApi: boolean;
+  prefillCommunityId: string | null;
+  prefillCommunityRouteKey: string | null;
+  prefillChannelId: string | null;
 };
 
 const TABS: { id: CreateTab; label: string; icon: typeof FileText; href: string }[] = [
   { id: "post", label: "Post", icon: FileText, href: "/create" },
   { id: "event", label: "Event", icon: CalendarDays, href: "/create?tab=event" },
   { id: "community", label: "Community", icon: Users, href: "/create?tab=community" },
+  { id: "channel", label: "Channel", icon: Hash, href: "/create?tab=channel" },
 ];
 
 function RightRail({ tab }: { tab: CreateTab }) {
@@ -38,6 +42,20 @@ function RightRail({ tab }: { tab: CreateTab }) {
           <li>• Add a cover and logo so members recognize your space.</li>
           <li>• Write a short description of who the community is for.</li>
           <li>• You can refine branding anytime from edit community.</li>
+        </ul>
+      </Card>
+    );
+  }
+
+  if (tab === "channel") {
+    return (
+      <Card className="p-5">
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Channel tips</p>
+        <h2 className="mt-2 text-base font-semibold">Organize conversations</h2>
+        <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+          <li>• Pick a clear name members will recognize (#general, #careers).</li>
+          <li>• Describe who should post and what belongs here.</li>
+          <li>• Add a logo so the channel stands out in the sidebar.</li>
         </ul>
       </Card>
     );
@@ -70,9 +88,19 @@ function RightRail({ tab }: { tab: CreateTab }) {
   );
 }
 
-export function CreateHub({ activeTab, stagingApi }: Props) {
-  const { shellUser } = useShellData();
+export function CreateHub({
+  activeTab,
+  stagingApi,
+  prefillCommunityId,
+  prefillCommunityRouteKey,
+  prefillChannelId,
+}: Props) {
+  const { shellUser, communityContext } = useShellData();
   const userDisplayName = shellUser.fullName;
+  const defaultCommunityId =
+    prefillCommunityId ?? communityContext.activeCommunity?.id ?? null;
+  const defaultCommunityRouteKey =
+    prefillCommunityRouteKey ?? communityContext.activeSlug ?? null;
 
   return (
     <PageContainer withRightRail rightRail={<RightRail tab={activeTab} />}>
@@ -97,7 +125,22 @@ export function CreateHub({ activeTab, stagingApi }: Props) {
           })}
         </div>
 
-        {activeTab === "community" ? (
+        {activeTab === "channel" ? (
+          <div className="p-6 md:p-8">
+            <div className="mb-6">
+              <h1 className="text-xl font-semibold">Create a channel</h1>
+              <p className="text-sm text-muted-foreground">
+                Add a discussion space inside a community you manage or belong to.
+              </p>
+            </div>
+            <ChannelForm
+              action={createChannel}
+              memberships={communityContext.memberships}
+              defaultCommunityId={defaultCommunityId}
+              defaultCommunityRouteKey={defaultCommunityRouteKey}
+            />
+          </div>
+        ) : activeTab === "community" ? (
           <div className="p-6 md:p-8">
             <div className="mb-6">
               <h1 className="text-xl font-semibold">Create a community</h1>
@@ -148,41 +191,13 @@ export function CreateHub({ activeTab, stagingApi }: Props) {
                 <p className="text-sm text-muted-foreground">Share an update with your community</p>
               </div>
             </div>
-            <form className="space-y-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Post to</label>
-                <Input defaultValue="Community" readOnly />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Selected community</label>
-                <Input
-                  defaultValue="Select a community from the sidebar"
-                  readOnly
-                  className="text-muted-foreground"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Title</label>
-                <Input placeholder="Give your post a title" />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Content</label>
-                <textarea
-                  className="min-h-[160px] w-full rounded-xl border border-input-border bg-card px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                  placeholder="Share your thoughts"
-                />
-                <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>B I U • List</span>
-                  <span>0/1000</span>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="ghost">
-                  Save draft
-                </Button>
-                <Button type="button">Post</Button>
-              </div>
-            </form>
+            <PostCreateForm
+              key={`post-${defaultCommunityId ?? "none"}-${prefillChannelId ?? "none"}`}
+              memberships={communityContext.memberships}
+              channelsByCommunityId={communityContext.channelsByCommunityId}
+              defaultCommunityId={defaultCommunityId}
+              defaultChannelId={prefillChannelId}
+            />
           </div>
         )}
       </Card>

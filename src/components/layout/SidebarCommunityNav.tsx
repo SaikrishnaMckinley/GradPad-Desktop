@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import { CommunityMark } from "@/components/layout/CommunityMark";
 import { buttonVariants } from "@/components/ui/button";
 import type { ShellCommunityContext } from "@/lib/communities/shell-data";
+import { resolveSidebarCommunityRouteKey } from "@/lib/shell/shell-context-sync";
 import { cn } from "@/lib/utils/cn";
 
 type Props = {
@@ -36,15 +37,23 @@ export function SidebarCommunityNav({ communityContext }: Props) {
   useEffect(() => {
     for (const community of communityContext.memberships) {
       router.prefetch(`/communities/${community.slug}`);
+      const list = communityContext.channelsByCommunityId[community.id] ?? [];
+      for (const channel of list) {
+        router.prefetch(`/communities/${community.slug}/channels/${channel.slug}`);
+      }
     }
-  }, [communityContext.memberships, router]);
+  }, [communityContext.memberships, communityContext.channelsByCommunityId, router]);
   const activeCommunity =
-    communityContext.memberships.find((m) => m.slug === activeSlug) ??
-    communityContext.activeCommunity;
+    communityContext.memberships.find(
+      (m) => m.slug === activeSlug || m.id === activeSlug,
+    ) ?? communityContext.activeCommunity;
 
-  const channels =
-    (activeCommunity && communityContext.channelsByCommunityId[activeCommunity.id]) ||
-    communityContext.channels;
+  const communityRouteKey = resolveSidebarCommunityRouteKey(activeSlug, activeCommunity);
+
+  const channels = activeCommunity
+    ? (communityContext.channelsByCommunityId[activeCommunity.id] ??
+      communityContext.channels)
+    : communityContext.channels;
 
   return (
     <>
@@ -73,32 +82,33 @@ export function SidebarCommunityNav({ communityContext }: Props) {
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Channels
           </h2>
-          <button
-            type="button"
+          <Link
+            href={
+              activeCommunity
+                ? `/create?tab=channel&community=${encodeURIComponent(activeCommunity.id)}`
+                : "/create?tab=channel"
+            }
             className="flex h-7 w-7 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
-            aria-label="Add channel"
+            aria-label="Create channel"
           >
             <Plus className="h-4 w-4" strokeWidth={2.25} />
-          </button>
+          </Link>
         </div>
-        {activeSlug && channels.length > 0 ? (
-          <ul className="space-y-0.5">
-            {channels.map((channel, index) => {
-              const href =
-                isDemoStaticUi && channel.slug === "general"
-                  ? `/communities/${activeSlug}#posts`
-                  : `/communities/${activeSlug}/channels/${channel.slug}`;
-              const onCommunityHub =
-                pathname === "/communities" ||
-                pathname === `/communities/${activeSlug}`;
+        {activeCommunity && communityRouteKey && channels.length > 0 ? (
+          <ul className="space-y-0.5 px-0.5">
+            {channels.map((channel) => {
+              const href = `/communities/${communityRouteKey}/channels/${channel.slug}`;
               const active =
-                pathname === href || (index === 0 && (pathname === "/home" || onCommunityHub));
+                pathname === href ||
+                pathname.startsWith(`${href}/`);
               return (
                 <li key={channel.id}>
                   <Link
                     href={href}
+                    scroll={false}
+                    prefetch
                     className={cn(
-                      "flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors",
+                      "flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm transition-colors",
                       active
                         ? "bg-primary-light font-medium text-primary"
                         : "text-foreground hover:bg-secondary",

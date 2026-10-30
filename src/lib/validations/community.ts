@@ -18,3 +18,18 @@ export const communityFormSchema = z.object({
 export type CommunityFormValues = z.infer<typeof communityFormSchema>;
 
 export const memberRoleSchema = z.enum(["admin", "moderator", "member"]);
+
+export const channelFormSchema = z.object({
+  communityId: z.string().trim().min(1, "Choose a community"),
+  communityRouteKey: z.string().trim().min(1, "Choose a community"),
+  name: z.string().trim().min(2, "Channel name is required").max(120),
+  description: z
+    .string()
+    .trim()
+    .min(25, "Description must be at least 25 characters")
+    .max(2000),
+  visibility: z.enum(["public", "private"]),
+  passcode: z.string().trim().max(64).optional().or(z.literal("")),
+});
+
+export type ChannelFormValues = z.infer<typeof channelFormSchema>;

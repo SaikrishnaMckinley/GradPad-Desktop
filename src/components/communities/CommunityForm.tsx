@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { CommunityFormBranding } from "@/components/communities/CommunityFormBranding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,10 +31,12 @@ export function CommunityForm({
 }: Props) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, null);
+  const allowRedirectRef = useRef(false);
   const [name, setName] = useState(initial.name);
 
   useEffect(() => {
-    if (!state?.redirectTo) return;
+    if (!allowRedirectRef.current || !state?.redirectTo) return;
+    allowRedirectRef.current = false;
     if (state.refreshShell && typeof window !== "undefined") {
       window.dispatchEvent(new Event("gradpad:refresh-shell"));
     }
@@ -45,7 +47,13 @@ export function CommunityForm({
   const [location, setLocation] = useState(initial.location ?? "");
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      action={formAction}
+      className="space-y-6"
+      onSubmit={() => {
+        allowRedirectRef.current = true;
+      }}
+    >
       <CommunityFormBranding
         name={name}
         location={location}

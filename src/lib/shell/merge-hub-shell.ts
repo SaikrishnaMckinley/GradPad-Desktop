@@ -1,5 +1,6 @@
 import type { CommunityHubPayload } from "@/lib/communities/hub-cache";
 import type { ShellCommunityContext } from "@/lib/communities/shell-data";
+import { mergeChannelsByCommunityId } from "@/lib/shell/shell-context-sync";
 import { communityAccentColor, communityInitials } from "@/lib/communities/slug";
 import type { CommunityListItem, SidebarCommunity } from "@/types/community";
 
@@ -24,14 +25,14 @@ export function mergeHubIntoShellContext(
   }
   const memberships = Array.from(byId.values());
 
-  const channelsByCommunityId = { ...prev.channelsByCommunityId };
-  if (hub.channels.length > 0) {
-    channelsByCommunityId[hub.community.id] = hub.channels.map((ch) => ({
-      id: ch.id,
-      slug: ch.slug,
-      name: ch.name,
-    }));
-  }
+  const hubChannels = hub.channels.map((ch) => ({
+    id: ch.id,
+    slug: ch.slug,
+    name: ch.name,
+  }));
+  const channelsByCommunityId = mergeChannelsByCommunityId(prev.channelsByCommunityId, {
+    [hub.community.id]: hubChannels,
+  });
 
   const routeKey = hub.community.slug ?? hub.community.id;
   const activeCommunity =
