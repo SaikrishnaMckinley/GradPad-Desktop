@@ -19,7 +19,7 @@ export type DevCommunity = {
 };
 
 /** App mark in sidebar and header (`public/images`). */
-export const GRADPAD_ICON = "/images/gradpad_icon.png";
+export const GRADPAD_ICON = "/images/gradpad_icon.webp";
 
 export type DevUser = {
   id: string;

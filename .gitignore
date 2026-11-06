@@ -4,6 +4,10 @@
 # next.js
 /.next/
 /out/
+tsconfig.tsbuildinfo
+
+# supabase local temp
+supabase/.temp/
 
 # env (never commit secrets)
 .env

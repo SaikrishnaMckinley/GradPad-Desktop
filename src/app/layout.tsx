@@ -13,11 +13,14 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: {
-    default: "GradPad",
-    template: "%s · GradPad",
+    default: "Grad Pad",
+    template: "%s · Grad Pad",
   },
   description:
-    "GradPad — community platform for alumni, events, channels, and messaging.",
+    "Grad Pad — community platform for alumni, events, channels, and messaging.",
+  icons: {
+    icon: [{ url: "/images/gradpad_icon.webp", type: "image/webp" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
