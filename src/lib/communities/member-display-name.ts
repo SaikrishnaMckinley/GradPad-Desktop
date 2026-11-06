@@ -1,3 +1,5 @@
+import { resolveStagingMediaUrl } from "@/lib/api/media-url";
+
 type NameFields = {
   first_name?: unknown;
   last_name?: unknown;
@@ -54,13 +56,21 @@ export function memberEmailFromApi(row: unknown): string | null {
   return email || null;
 }
 
+function photoFromRecord(record: Record<string, unknown>): string | null {
+  const keys = ["photo", "avatar_url", "avatar", "profile_picture", "image", "profile_image"];
+  for (const key of keys) {
+    const value = str(record[key]);
+    if (value) return resolveStagingMediaUrl(value);
+  }
+  return null;
+}
+
 export function memberPhotoFromApi(row: unknown): string | null {
   if (!row || typeof row !== "object") return null;
   const record = row as Record<string, unknown>;
-  const nested = record.user && typeof record.user === "object" ? record.user : null;
-  const photo =
-    (nested && typeof nested === "object" && str((nested as Record<string, unknown>).photo)) ||
-    str(record.photo) ||
-    str(record.profile_picture);
-  return photo || null;
+  const nested =
+    record.user && typeof record.user === "object"
+      ? (record.user as Record<string, unknown>)
+      : null;
+  return photoFromRecord(nested ?? {}) ?? photoFromRecord(record);
 }

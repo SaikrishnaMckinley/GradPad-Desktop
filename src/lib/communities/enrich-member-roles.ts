@@ -1,4 +1,4 @@
-import { memberDisplayNameFromApi } from "@/lib/communities/member-display-name";
+import { memberDisplayNameFromApi, memberPhotoFromApi } from "@/lib/communities/member-display-name";
 import { sortMembersByDisplayRole } from "@/lib/communities/membership-role-ui";
 import type { CommunityMemberDisplayRole, CommunityMemberRow } from "@/types/community";
 
@@ -41,7 +41,7 @@ function rowFromPerson(
     userId,
     fullName: personName(person),
     username: person.nickname?.trim() && person.nickname !== "undefined" ? person.nickname : null,
-    avatarUrl: person.photo ?? null,
+    avatarUrl: memberPhotoFromApi(person),
     role: apiRole,
     status: "active",
     joinedAt: new Date().toISOString(),
@@ -95,6 +95,29 @@ export function mergeAndEnrichCommunityMembers(
 
   const detailMemberRows = Array.isArray(detail.members) ? detail.members : [];
 
+  function avatarForUserId(userId: string, current: string | null): string | null {
+    if (current) return current;
+    if (paymentOwnerId === userId && paymentOwner) {
+      return memberPhotoFromApi(paymentOwner);
+    }
+    if (Array.isArray(detail.owners)) {
+      const owner = (detail.owners as PersonRef[]).find((p) => personUserId(p) === userId);
+      if (owner) return memberPhotoFromApi(owner);
+    }
+    if (Array.isArray(detail.admins)) {
+      const admin = (detail.admins as PersonRef[]).find((p) => personUserId(p) === userId);
+      if (admin) return memberPhotoFromApi(admin);
+    }
+    const raw = detailMemberRows.find((entry) => {
+      if (!entry || typeof entry !== "object") return false;
+      const r = entry as Record<string, unknown>;
+      const uid = String(r.user_id ?? r.id ?? "");
+      return uid === userId;
+    });
+    if (raw) return memberPhotoFromApi(raw);
+    return null;
+  }
+
   const enriched = Array.from(byUserId.values()).map((row) => {
     let fullName = row.fullName;
     if (fullName === "Member") {
@@ -109,6 +132,7 @@ export function mergeAndEnrichCommunityMembers(
     return {
       ...row,
       fullName,
+      avatarUrl: avatarForUserId(row.userId, row.avatarUrl),
       displayRole: displayRoleForUser(
         row.userId,
         row.role,
