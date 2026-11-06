@@ -26,6 +26,8 @@ type ApiEventRow = {
   is_active?: boolean;
   cost?: number | null;
   price?: number | null;
+  /** Joined-events list often includes ticket tiers here without top-level cost. */
+  tickets?: unknown;
   event_type?: string | null;
 };
 
@@ -59,12 +61,135 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function priceLabel(row: ApiEventRow): string | null {
-  const cost = row.cost ?? row.price;
-  if (cost == null || Number.isNaN(Number(cost))) return null;
-  const n = Number(cost);
-  if (n <= 0) return "Free";
+function formatMoney(n: number): string {
   return `$${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`;
+}
+
+/** Parse money from API (number, string "$12", "12.00", or cents when key suggests it). */
+function parseMoneyField(record: Record<string, unknown>, keys: string[]): number | null {
+  for (const key of keys) {
+    const raw = record[key];
+    if (raw == null) continue;
+    const n = parseMoneyValue(raw);
+    if (n == null) continue;
+    const centsKey = key.endsWith("_cents") || key.includes("cents");
+    const amount = centsKey ? n / 100 : n;
+    if (amount >= 0) return amount;
+  }
+  return null;
+}
+
+function parseMoneyValue(raw: unknown): number | null {
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+  if (typeof raw === "string") {
+    const t = raw.trim();
+    if (!t) return null;
+    const cleaned = t.replace(/[$,\s]/g, "");
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function priceLabelFromTopLevel(_row: ApiEventRow, record: Record<string, unknown>): string | null {
+  const keys = [
+    "cost",
+    "price",
+    "amount",
+    "ticket_price",
+    "entry_fee",
+    "registration_fee",
+    "min_ticket_price",
+    "minimum_ticket_price",
+    "lowest_ticket_price",
+    "starting_price",
+    "price_cents",
+    "cost_cents",
+  ];
+  const n = parseMoneyField(record, keys);
+  if (n == null) return null;
+  if (n <= 0) return "Free";
+  return formatMoney(n);
+}
+
+/** Collect ticket-tier rows from list/detail shapes (joined list may nest differently). */
+function collectTicketTierRows(record: Record<string, unknown>): unknown[] {
+  const out: unknown[] = [];
+  const push = (v: unknown) => {
+    if (Array.isArray(v)) out.push(...v);
+  };
+  push(record.tickets);
+  push(record.ticket_types);
+  push(record.event_tickets);
+  push(record.ticket_set);
+  return out;
+}
+
+function ticketTierPaidAmount(t: Record<string, unknown>): number | null {
+  const fromFields =
+    parseMoneyField(t, ["cost", "price", "amount", "ticket_cost", "unit_price", "price_cents", "cost_cents"]) ??
+    null;
+  if (fromFields != null && fromFields > 0) return fromFields;
+
+  const isFreeFlag =
+    t.is_free === true ||
+    t.free === true ||
+    t.type === "free" ||
+    (typeof t.type === "string" && t.type.toLowerCase() === "free");
+  if (isFreeFlag) return 0;
+
+  return null;
+}
+
+function ticketTierIsFree(t: Record<string, unknown>, paid: number | null): boolean {
+  if (paid != null && paid <= 0) return true;
+  if (t.is_free === true || t.free === true) return true;
+  if (typeof t.type === "string" && t.type.toLowerCase() === "free") return true;
+  return false;
+}
+
+/**
+ * Derive a single list-display price from ticket tiers when top-level cost is absent.
+ */
+function priceLabelFromTickets(record: Record<string, unknown>): string | null {
+  const raw = collectTicketTierRows(record);
+  if (raw.length === 0) return null;
+
+  const costs: number[] = [];
+  let anyTicket = false;
+  let anyFree = false;
+
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const t = item as Record<string, unknown>;
+    anyTicket = true;
+    const paid = ticketTierPaidAmount(t);
+    if (ticketTierIsFree(t, paid)) {
+      anyFree = true;
+      continue;
+    }
+    if (paid != null && paid > 0) costs.push(paid);
+  }
+
+  if (!anyTicket) return null;
+
+  const paidPositive = costs.filter((c) => c > 0);
+  if (paidPositive.length === 0) {
+    return anyFree ? "Free" : null;
+  }
+
+  const min = Math.min(...paidPositive);
+  const distinct = new Set(paidPositive);
+  if (distinct.size >= 2 || (anyFree && paidPositive.length >= 1)) {
+    return `From ${formatMoney(min)}`;
+  }
+  return formatMoney(min);
+}
+
+function priceLabelForListRow(row: ApiEventRow, record: Record<string, unknown>): string | null {
+  const top = priceLabelFromTopLevel(row, record);
+  if (top != null) return top;
+  return priceLabelFromTickets(record);
 }
 
 function buildBadges(row: ApiEventRow, location: string | null, price: string | null) {
@@ -100,7 +225,7 @@ export function mapEventRow(row: unknown): EventListItem | null {
   const location = locationText(e.location) ?? locationText(e.address);
   const startAt = parseStartIso(e);
   const imageUrl = resolveEventImageUrl(record);
-  const price = priceLabel(e);
+  const price = priceLabelForListRow(e, record);
 
   return {
     id: e.id,

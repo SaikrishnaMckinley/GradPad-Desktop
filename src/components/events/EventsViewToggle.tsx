@@ -9,10 +9,10 @@ type EventsViewToggleProps = {
 
 export function EventsViewToggle({ view, onChange }: EventsViewToggleProps) {
   return (
-    <div className="relative mb-6 flex w-full rounded-[14px] bg-primary-light p-1">
+    <div className="relative mb-4 flex w-full rounded-[12px] bg-primary-light p-0.5 md:mb-6 md:rounded-[14px] md:p-1">
       <div
         className={cn(
-          "absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-[11px] bg-primary shadow-sm transition-transform duration-300 ease-out",
+          "absolute inset-y-0.5 w-[calc(50%-0.125rem)] rounded-[9px] bg-primary shadow-sm transition-transform duration-300 ease-out md:inset-y-1 md:w-[calc(50%-0.25rem)] md:rounded-[11px]",
           view === "feed" ? "translate-x-0" : "translate-x-full",
         )}
         aria-hidden
@@ -25,7 +25,7 @@ export function EventsViewToggle({ view, onChange }: EventsViewToggleProps) {
             type="button"
             onClick={() => onChange(mode)}
             className={cn(
-              "relative z-10 flex-1 rounded-[11px] py-3 text-center text-[15px] font-semibold capitalize transition-colors duration-300",
+              "relative z-10 flex-1 rounded-[9px] py-2.5 text-center text-sm font-semibold capitalize transition-colors duration-300 md:rounded-[11px] md:py-3 md:text-[15px]",
               active ? "text-white" : "text-muted-foreground hover:text-foreground",
             )}
           >

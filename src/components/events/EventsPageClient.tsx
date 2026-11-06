@@ -64,7 +64,7 @@ export function EventsPageClient({ stagingApi, initialEvents }: Props) {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="mb-4 hidden flex-col gap-4 sm:flex-row sm:items-start sm:justify-between md:mb-6 md:flex">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Your events</h1>
           <p className="mt-1 text-sm text-muted-foreground">
