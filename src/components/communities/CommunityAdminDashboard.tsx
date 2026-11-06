@@ -80,18 +80,18 @@ export function CommunityAdminDashboard(props: Props) {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 md:gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Admin dashboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{props.communityName}</p>
+          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Admin dashboard</h1>
+          <p className="mt-0.5 text-xs text-muted-foreground md:mt-1 md:text-sm">{props.communityName}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-1">
+        <div className="flex flex-wrap items-center gap-0.5 md:gap-1">
           <Link
             href={`/communities/${props.slug}/edit`}
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
-              "font-normal text-muted-foreground hover:text-foreground",
+              "h-8 px-2 text-xs font-normal text-muted-foreground hover:text-foreground md:h-9 md:px-3.5 md:text-sm",
             )}
           >
             Edit community
@@ -103,7 +103,7 @@ export function CommunityAdminDashboard(props: Props) {
             href={`/communities/${props.slug}`}
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
-              "font-normal text-muted-foreground hover:text-foreground",
+              "h-8 px-2 text-xs font-normal text-muted-foreground hover:text-foreground md:h-9 md:px-3.5 md:text-sm",
             )}
           >
             View community
@@ -112,7 +112,7 @@ export function CommunityAdminDashboard(props: Props) {
       </div>
 
       <nav
-        className="flex flex-wrap gap-1 rounded-xl border border-border bg-page-secondary/30 p-1"
+        className="flex flex-wrap gap-0.5 rounded-lg border border-border bg-page-secondary/30 p-0.5 md:gap-1 md:rounded-xl md:p-1"
         aria-label="Admin sections"
       >
         {tabs.map((tab) => {
@@ -123,7 +123,7 @@ export function CommunityAdminDashboard(props: Props) {
               type="button"
               onClick={() => setTab(tab.id)}
               className={cn(
-                "inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
+                "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors md:gap-2 md:rounded-lg md:px-3.5 md:py-2 md:text-sm",
                 selected
                   ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
@@ -134,7 +134,7 @@ export function CommunityAdminDashboard(props: Props) {
               {tab.count != null && tab.count > 0 ? (
                 <span
                   className={cn(
-                    "min-w-[1.25rem] rounded-full px-1.5 py-0.5 text-center text-xs font-semibold",
+                    "min-w-[1.125rem] rounded-full px-1 py-0.5 text-center text-[10px] font-semibold md:min-w-[1.25rem] md:px-1.5 md:text-xs",
                     selected ? "bg-primary text-white" : "bg-primary-light text-primary",
                   )}
                 >
@@ -146,7 +146,7 @@ export function CommunityAdminDashboard(props: Props) {
         })}
       </nav>
 
-      <div className="min-h-[240px]">
+      <div className="min-h-[200px] md:min-h-[240px]">
         <div className={activeTab === "requests" ? undefined : "hidden"} aria-hidden={activeTab !== "requests"}>
           <AdminRequestsTab
             slug={props.slug}
@@ -238,11 +238,11 @@ function AdminRequestsTab({
     <section>
       <h2 className="sr-only">Pending membership requests</h2>
       {pending.length === 0 ? (
-        <Card className="border-border/80 bg-white p-6 text-sm text-muted-foreground shadow-sm">
+        <Card className="border-border/80 bg-white p-4 text-xs text-muted-foreground shadow-sm md:p-6 md:text-sm">
           No pending requests.
         </Card>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-1.5 md:space-y-2">
           {pending.map((row) => {
             const busy = rowBusy === row.id;
             const requested = formatRequestDate(row.createdAt);
@@ -254,34 +254,61 @@ function AdminRequestsTab({
             })();
             return (
               <li key={row.id}>
-                <Card className="flex flex-wrap items-center justify-between gap-3 border-border/80 bg-white p-4 shadow-sm">
-                  <div className="flex items-center gap-3">
+                <Card
+                  className={cn(
+                    "flex items-center justify-between gap-2 border-border/80 bg-white p-3 shadow-sm",
+                    "max-md:flex-nowrap max-md:gap-2",
+                    "md:flex-wrap md:gap-3 md:p-4",
+                  )}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-2 md:min-w-0 md:flex-none md:gap-3">
                     <ProfileAvatarLink
                       userId={row.userId}
                       src={row.avatarUrl}
                       alt={row.fullName}
                       fallback={row.fullName}
-                      size="md"
+                      size="sm"
+                      className="shrink-0 md:!h-10 md:!w-10 md:!text-sm"
                     />
-                    <div>
-                      <ProfileNameLink userId={row.userId} className="font-medium">
+                    <div className="min-w-0 flex-1">
+                      <ProfileNameLink
+                        userId={row.userId}
+                        className="block truncate text-sm font-medium max-md:whitespace-nowrap md:text-base md:whitespace-normal md:break-words"
+                      >
                         {row.fullName}
                       </ProfileNameLink>
-                      <p className="text-xs text-muted-foreground">
+                      <p
+                        className={cn(
+                          "text-[11px] text-muted-foreground md:text-xs",
+                          "max-md:truncate max-md:whitespace-nowrap",
+                          "md:overflow-visible md:whitespace-normal",
+                        )}
+                      >
                         {requested ? `Requested ${requested}` : "Membership request"}
                         {row.username ? (
                           <span className="text-muted-foreground/80"> · @{row.username}</span>
                         ) : null}
                       </p>
                       {customMessage ? (
-                        <p className="mt-1 max-w-md text-xs text-muted-foreground">
+                        <p
+                          className={cn(
+                            "mt-0.5 max-w-md text-[11px] text-muted-foreground md:mt-1 md:text-xs",
+                            "max-md:truncate max-md:whitespace-nowrap",
+                            "md:whitespace-normal",
+                          )}
+                        >
                           {customMessage}
                         </p>
                       ) : null}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" disabled={busy} onClick={() => void decide(row, "active")}>
+                  <div className="flex shrink-0 gap-1.5 md:gap-2">
+                    <Button
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => void decide(row, "active")}
+                      className="h-8 shrink-0 px-2.5 text-xs md:h-9 md:px-3.5 md:text-sm"
+                    >
                       {busy ? "…" : "Approve"}
                     </Button>
                     <Button
@@ -289,6 +316,7 @@ function AdminRequestsTab({
                       variant="outline"
                       disabled={busy}
                       onClick={() => void decide(row, "rejected")}
+                      className="h-8 shrink-0 px-2.5 text-xs md:h-9 md:px-3.5 md:text-sm"
                     >
                       Reject
                     </Button>
@@ -336,11 +364,11 @@ function AdminMembersTab({
     <section>
       <h2 className="sr-only">Active members</h2>
       {members.length === 0 ? (
-        <Card className="border-border/80 bg-white p-6 text-sm text-muted-foreground shadow-sm">
+        <Card className="border-border/80 bg-white p-4 text-xs text-muted-foreground shadow-sm md:p-6 md:text-sm">
           No active members yet.
         </Card>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-1.5 md:space-y-2">
           {members.map((row) => {
             const busy = rowBusy === row.id;
             const displayRole = row.displayRole ?? "member";
@@ -348,22 +376,33 @@ function AdminMembersTab({
               displayRole !== "payment_owner" && displayRole !== "community_owner";
             return (
               <li key={row.id}>
-                <Card className="flex flex-wrap items-center justify-between gap-3 border-border/80 bg-white p-4 shadow-sm">
-                  <div className="flex items-center gap-3">
+                <Card
+                  className={cn(
+                    "flex items-center justify-between gap-2 border-border/80 bg-white p-3 shadow-sm",
+                    "max-md:flex-nowrap max-md:gap-2",
+                    "md:flex-wrap md:gap-3 md:p-4",
+                  )}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-2 md:min-w-0 md:flex-none md:gap-3">
                     <ProfileAvatarLink
                       userId={row.userId}
                       src={row.avatarUrl}
                       alt={row.fullName}
                       fallback={row.fullName}
-                      size="md"
+                      size="sm"
+                      className="shrink-0 md:!h-10 md:!w-10 md:!text-sm"
                     />
-                    <div>
-                      <ProfileNameLink userId={row.userId} className="font-medium">
+                    <div className="min-w-0 flex-1 md:min-w-0 md:flex-none">
+                      <ProfileNameLink
+                        userId={row.userId}
+                        className="block truncate text-sm font-medium max-md:whitespace-nowrap md:text-base md:whitespace-normal md:break-words"
+                      >
                         {row.fullName}
                       </ProfileNameLink>
                       <span
                         className={cn(
-                          "mt-1 inline-flex rounded-md px-2 py-0.5 text-xs font-semibold",
+                          "mt-0.5 inline-flex max-w-full rounded-md px-1.5 py-0.5 text-[10px] font-semibold md:mt-1 md:px-2 md:text-xs",
+                          "max-md:truncate max-md:whitespace-nowrap",
                           membershipRoleBadgeClass(displayRole),
                         )}
                       >
@@ -372,9 +411,12 @@ function AdminMembersTab({
                     </div>
                   </div>
                   {!canManageRole ? null : (
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex shrink-0 flex-nowrap items-center gap-1.5 md:flex-wrap md:gap-2">
                       <select
-                        className={ADMIN_MEMBER_ROLE_SELECT_CLASS}
+                        className={cn(
+                          ADMIN_MEMBER_ROLE_SELECT_CLASS,
+                          "h-8 w-28 min-w-0 shrink-0 text-xs md:h-9 md:w-auto md:min-w-[9.5rem] md:text-sm",
+                        )}
                         defaultValue={row.role === "moderator" ? "admin" : row.role}
                         disabled={busy}
                         onChange={(e) =>
@@ -412,6 +454,7 @@ function AdminMembersTab({
                             });
                           })
                         }
+                        className="h-8 shrink-0 px-2.5 text-xs md:h-9 md:px-3.5 md:text-sm"
                       >
                         Remove
                       </Button>

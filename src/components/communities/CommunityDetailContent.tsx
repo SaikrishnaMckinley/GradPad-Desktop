@@ -300,29 +300,40 @@ export function CommunityDetailContent({
         ) : events.length === 0 ? (
           <CommunityEmptyState variant="events" />
         ) : (
-          <div className="flex gap-4 overflow-x-auto pb-1">
+          <div
+            className={cn(
+              "flex gap-3 overflow-x-auto pb-1 md:gap-4",
+              hideScrollbarMobile,
+            )}
+          >
             {events.map((event) => {
               const { day, month, time } = formatEventCard(event.start_at);
               const formatLabel = eventFormatLabel(event);
               return (
                 <Card
                   key={event.id}
-                  className="flex min-w-[min(100%,300px)] max-w-[320px] shrink-0 flex-col gap-4 p-5 shadow-card"
+                  className={cn(
+                    "flex shrink-0 flex-col shadow-card",
+                    "min-w-[min(82vw,248px)] max-w-[268px] gap-3 p-3",
+                    "md:min-w-[min(100%,300px)] md:max-w-[320px] md:gap-4 md:p-5",
+                  )}
                 >
-                  <div className="flex gap-4">
-                    <div className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-2xl border border-border bg-page-secondary">
-                      <span className="text-xl font-bold leading-none">{day}</span>
-                      <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <div className="flex gap-3 md:gap-4">
+                    <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-page-secondary md:h-[72px] md:w-[72px] md:rounded-2xl">
+                      <span className="text-lg font-bold leading-none md:text-xl">{day}</span>
+                      <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground md:mt-1 md:text-[10px]">
                         {month}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground md:text-xs">
                         {time} · {formatLabel}
                       </p>
-                      <p className="mt-1 text-base font-semibold leading-snug">{event.title}</p>
+                      <p className="mt-0.5 text-sm font-semibold leading-snug md:mt-1 md:text-base">
+                        {event.title}
+                      </p>
                       {event.description ? (
-                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground md:mt-2 md:line-clamp-3 md:text-sm">
                           {event.description}
                         </p>
                       ) : null}
@@ -331,7 +342,10 @@ export function CommunityDetailContent({
                   <Link
                     href={`/events/${event.id}`}
                     prefetch
-                    className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "h-8 w-full text-xs md:h-10 md:text-sm",
+                    )}
                   >
                     RSVP
                   </Link>

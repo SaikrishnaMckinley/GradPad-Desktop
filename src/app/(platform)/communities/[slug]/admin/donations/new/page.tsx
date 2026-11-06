@@ -38,11 +38,14 @@ export default async function NewDonationFundPage({ params }: Props) {
 
   return (
     <PageContainer className="max-w-3xl">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Create donation fund</h1>
+      <div className="mb-4 flex items-center justify-between gap-3 md:mb-6 md:gap-4">
+        <h1 className="text-xl font-semibold md:text-2xl">Create donation fund</h1>
         <Link
           href={`/communities/${slug}/admin/donations`}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "h-8 shrink-0 px-2.5 text-xs md:h-9 md:px-3 md:text-sm",
+          )}
         >
           Cancel
         </Link>

@@ -9,6 +9,9 @@ import { Card } from "@/components/ui/card";
 import { DEV_ACTIVE_COMMUNITY, DEV_COMMUNITIES } from "@/lib/fixtures/dev-shell-data";
 import { cn } from "@/lib/utils/cn";
 
+const hideScrollbarMobile =
+  "max-md:[scrollbar-width:none] max-md:[-ms-overflow-style:none] max-md:[&::-webkit-scrollbar]:hidden";
+
 const DEMO_EVENTS = [
   {
     day: "21",
@@ -179,21 +182,29 @@ export function CommunityDetailDemo({ slug = DEV_ACTIVE_COMMUNITY.slug }: Commun
             <Plus className="h-4 w-4" />
           </button>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-1">
+        <div
+          className={cn(
+            "flex gap-3 overflow-x-auto pb-1 md:gap-4",
+            hideScrollbarMobile,
+          )}
+        >
           {DEMO_EVENTS.map((event) => (
             <Card
               key={event.title}
-              className="flex min-w-[min(100%,280px)] shrink-0 gap-4 p-4 shadow-card sm:min-w-[300px]"
+              className={cn(
+                "flex shrink-0 gap-3 p-3 shadow-card md:gap-4 md:p-4",
+                "min-w-[min(82vw,248px)] max-w-[268px] sm:min-w-[300px] md:min-w-[min(100%,300px)] md:max-w-none",
+              )}
             >
-              <div className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-2xl border border-border bg-page-secondary">
-                <span className="text-xl font-bold leading-none">{event.day}</span>
-                <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-page-secondary md:h-[72px] md:w-[72px] md:rounded-2xl">
+                <span className="text-lg font-bold leading-none md:text-xl">{event.day}</span>
+                <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground md:mt-1 md:text-[10px]">
                   {event.month}
                 </span>
               </div>
-              <div className="min-w-0 py-1">
-                <p className="text-xs font-medium text-muted-foreground">{event.time}</p>
-                <p className="mt-1 font-semibold">{event.title}</p>
+              <div className="min-w-0 py-0.5 md:py-1">
+                <p className="text-[10px] font-medium text-muted-foreground md:text-xs">{event.time}</p>
+                <p className="mt-0.5 text-sm font-semibold md:mt-1 md:text-base">{event.title}</p>
               </div>
             </Card>
           ))}
