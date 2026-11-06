@@ -13,6 +13,7 @@ export type EventManageStatistics = {
 
 export type EventAttendeeRow = {
   id: string;
+  userId: string | null;
   name: string;
   email: string;
   photo: string | null;
@@ -86,6 +87,12 @@ function mapAttendeeRow(item: unknown, index: number): EventAttendeeRow | null {
   const name = typeof a.name === "string" && a.name.trim() ? a.name.trim() : "Guest";
   const email = typeof a.email === "string" ? a.email.trim() : "";
   const id = String(a.registration_id ?? a.attendee_id ?? `attendee-${index}`);
+  const userId =
+    a.user_id != null
+      ? String(a.user_id)
+      : a.user && typeof a.user === "object"
+        ? String((a.user as Record<string, unknown>).id ?? "")
+        : null;
   const checkInDate =
     typeof a.check_in_date === "string" && a.check_in_date.trim()
       ? a.check_in_date
@@ -93,6 +100,7 @@ function mapAttendeeRow(item: unknown, index: number): EventAttendeeRow | null {
 
   return {
     id,
+    userId: userId && userId !== "undefined" ? userId : null,
     name,
     email,
     photo: typeof a.photo === "string" && a.photo.trim() ? a.photo : null,

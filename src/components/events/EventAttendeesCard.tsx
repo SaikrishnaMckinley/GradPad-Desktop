@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { ChevronDown, UserPlus } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatarLink } from "@/components/profile/ProfileAvatarLink";
+import { ProfileNameLink } from "@/components/profile/ProfileNameLink";
 import { Card } from "@/components/ui/card";
 import type { EventAttendeeRosterItem } from "@/lib/events/map-event-attendees";
 import { cn } from "@/lib/utils/cn";
@@ -64,14 +65,20 @@ export function EventAttendeesCard({
           <ul className="mt-5 divide-y divide-border">
             {visible.map((person) => (
               <li key={person.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                <Avatar
+                <ProfileAvatarLink
+                  userId={person.userId}
                   src={person.avatarUrl}
                   alt={person.name}
                   fallback={person.name}
                   size="sm"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{person.name}</p>
+                  <ProfileNameLink
+                    userId={person.userId}
+                    className="block truncate text-sm font-medium text-foreground"
+                  >
+                    {person.name}
+                  </ProfileNameLink>
                   {person.subtitle ? (
                     <p className="truncate text-xs text-muted-foreground">{person.subtitle}</p>
                   ) : null}

@@ -25,6 +25,7 @@ export type EventDetailViewModel = EventListItem & {
   tickets: EventTicketOption[];
   hostName: string;
   hostAvatarUrl: string | null;
+  hostUserId: string | null;
   platformFeeLabel: string | null;
 };
 
@@ -72,7 +73,11 @@ function mapTickets(raw: unknown): EventTicketOption[] {
     .filter((t): t is EventTicketOption => t != null);
 }
 
-function hostFromOwners(row: Record<string, unknown>): { name: string; avatar: string | null } {
+function hostFromOwners(row: Record<string, unknown>): {
+  name: string;
+  avatar: string | null;
+  userId: string | null;
+} {
   const owners = row.owner ?? row.owners;
   if (Array.isArray(owners) && owners.length > 0) {
     const o = owners[0] as Record<string, unknown>;
@@ -83,9 +88,10 @@ function hostFromOwners(row: Record<string, unknown>): { name: string; avatar: s
       (typeof o.photo === "string" && o.photo) ||
       (typeof o.profile_picture === "string" && o.profile_picture) ||
       null;
-    return { name, avatar };
+    const userId = o.id != null ? String(o.id) : null;
+    return { name, avatar, userId };
   }
-  return { name: "Community organizer", avatar: null };
+  return { name: "Community organizer", avatar: null, userId: null };
 }
 
 export function mapEventDetail(data: unknown): EventDetailViewModel | null {
@@ -118,6 +124,7 @@ export function mapEventDetail(data: unknown): EventDetailViewModel | null {
     tickets,
     hostName: host.name,
     hostAvatarUrl: host.avatar,
+    hostUserId: host.userId,
     platformFeeLabel:
       typeof row.platform_fee === "string" && row.platform_fee.trim()
         ? row.platform_fee

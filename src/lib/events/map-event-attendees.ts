@@ -2,10 +2,12 @@ import {
   attendeeIdentityFromMember,
   formatAttendeeIdentitySubtitle,
 } from "@/lib/events/attendee-identity";
+import { memberPhotoFromApi } from "@/lib/communities/member-display-name";
 import { sortPeopleStable } from "@/lib/utils/sort-people-stable";
 
 export type EventAttendeeRosterItem = {
   id: string;
+  userId: string | null;
   name: string;
   avatarUrl: string | null;
   subtitle: string | null;
@@ -31,14 +33,6 @@ function displayName(row: Record<string, unknown>): string {
   return "Guest";
 }
 
-function avatarUrl(row: Record<string, unknown>): string | null {
-  const photo =
-    (typeof row.photo === "string" && row.photo) ||
-    (typeof row.profile_picture === "string" && row.profile_picture) ||
-    (typeof row.avatar === "string" && row.avatar) ||
-    null;
-  return photo;
-}
 
 function plusOneLabel(row: Record<string, unknown>): string | null {
   const named =
@@ -63,10 +57,17 @@ export function mapEventAttendeeRoster(data: unknown): EventAttendeeRosterItem[]
       const id = String(
         row.attendee_id ?? row.registration_id ?? row.id ?? `attendee-${index}`,
       );
+      const userId =
+        row.user_id != null
+          ? String(row.user_id)
+          : row.user && typeof row.user === "object"
+            ? String((row.user as Record<string, unknown>).id ?? "")
+            : null;
       return {
         id,
+        userId: userId && userId !== "undefined" ? userId : null,
         name: displayName(row),
-        avatarUrl: avatarUrl(row),
+        avatarUrl: memberPhotoFromApi(row),
         subtitle: formatAttendeeIdentitySubtitle(identity),
         plusOneLabel: plusOneLabel(row),
       };

@@ -11,7 +11,9 @@ import { EventAttendeesCard } from "@/components/events/EventAttendeesCard";
 import { EventFreeRegistrationModal } from "@/components/events/EventFreeRegistrationModal";
 import { EventViewTicketModal } from "@/components/events/EventViewTicketModal";
 import { EventShareLinkButton } from "@/components/events/EventShareLinkButton";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatarLink } from "@/components/profile/ProfileAvatarLink";
+import { ProfileNameLink } from "@/components/profile/ProfileNameLink";
+import { resolveStagingMediaUrl } from "@/lib/api/media-url";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { writeEventDetailCache } from "@/lib/events/events-cache";
@@ -67,6 +69,8 @@ export function EventDetailClient({
   const [heroSrc, setHeroSrc] = useState(event.imageUrl ?? FALLBACK);
   const [heroFailed, setHeroFailed] = useState(false);
   const { timeLabel, dayLabel } = formatEventFeedLabels(event.startAt);
+  const endMs = new Date(event.endAt).getTime();
+  const eventHasEnded = !Number.isNaN(endMs) && endMs < Date.now();
   const price =
     event.tickets.find((t) => !t.isFree)?.cost ??
     (event.priceLabel?.startsWith("$")
@@ -235,6 +239,30 @@ export function EventDetailClient({
                   </Link>
                 </div>
               </>
+            ) : eventHasEnded ? (
+              <>
+                <span className="inline-block rounded-lg bg-page-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                  Event ended
+                </span>
+                {event.isAttendee ? (
+                  <div className="mt-5 space-y-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                      Registered
+                    </span>
+                    <p className="text-sm text-muted-foreground">
+                      This event is over. You can still open your ticket details if you need them.
+                    </p>
+                    <Button type="button" className="w-full" onClick={() => setViewTicketOpen(true)}>
+                      View ticket
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Registration is closed — this event has already ended.
+                  </p>
+                )}
+              </>
             ) : (
               <>
                 {event.requiresApproval ? (
@@ -317,14 +345,17 @@ export function EventDetailClient({
               Hosted by
             </h3>
             <div className="mt-4 flex items-center gap-3">
-              <Avatar
-                src={event.hostAvatarUrl}
+              <ProfileAvatarLink
+                userId={event.hostUserId}
+                src={resolveStagingMediaUrl(event.hostAvatarUrl)}
                 alt={event.hostName}
                 fallback={event.hostName}
                 size="md"
               />
               <div>
-                <p className="font-semibold">{event.hostName}</p>
+                <ProfileNameLink userId={event.hostUserId} className="font-semibold">
+                  {event.hostName}
+                </ProfileNameLink>
                 <p className="text-xs text-muted-foreground">Community organizer</p>
               </div>
             </div>

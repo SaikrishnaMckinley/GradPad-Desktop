@@ -50,6 +50,18 @@ export function EventsPageClient({ stagingApi, initialEvents }: Props) {
     return () => window.removeEventListener(EVENTS_INVALIDATE_EVENT, onInvalidate);
   }, []);
 
+  const feedContent = stagingApi ? (
+    <EventFeedList events={upcomingEvents} />
+  ) : (
+    <EventFeedDemo />
+  );
+
+  const calendarContent = stagingApi ? (
+    <EventCalendarView events={initialEvents} />
+  ) : (
+    <EventCalendarDemo />
+  );
+
   return (
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -69,17 +81,33 @@ export function EventsPageClient({ stagingApi, initialEvents }: Props) {
 
       <EventsViewToggle view={view} onChange={setView} />
 
-      {view === "feed" ? (
-        stagingApi ? (
-          <EventFeedList events={upcomingEvents} />
-        ) : (
-          <EventFeedDemo />
-        )
-      ) : stagingApi ? (
-        <EventCalendarView events={initialEvents} />
-      ) : (
-        <EventCalendarDemo />
-      )}
+      <div className="overflow-hidden">
+        <div
+          className={cn(
+            "flex w-[200%] gap-0 transition-transform duration-300 ease-out motion-reduce:transform-none",
+            view === "feed" ? "translate-x-0" : "-translate-x-1/2",
+          )}
+        >
+          <section
+            aria-hidden={view !== "feed"}
+            className={cn(
+              "w-1/2 shrink-0 pr-1 transition-opacity duration-200",
+              view === "feed" ? "opacity-100" : "pointer-events-none opacity-40",
+            )}
+          >
+            {feedContent}
+          </section>
+          <section
+            aria-hidden={view !== "calendar"}
+            className={cn(
+              "w-1/2 shrink-0 pl-1 transition-opacity duration-200",
+              view === "calendar" ? "opacity-100" : "pointer-events-none opacity-40",
+            )}
+          >
+            {calendarContent}
+          </section>
+        </div>
+      </div>
     </>
   );
 }

@@ -6,7 +6,7 @@ import { useActionState, useCallback, useEffect, useState, useTransition } from 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatarLink } from "@/components/profile/ProfileAvatarLink";
 import { EventCheckInResultDialog } from "@/components/events/EventCheckInResultDialog";
 import {
   loadEventAttendeesSummary,
@@ -213,7 +213,13 @@ export function EventCheckInClient({ eventId, title, initialSummary }: Props) {
           <ul className="divide-y divide-border rounded-xl border border-border">
             {checkedInPeople.map((person) => (
               <li key={person.id} className="flex items-center gap-3 px-3 py-3 sm:px-4">
-                <Avatar src={person.photo} alt={person.name} fallback={person.name} size="sm" />
+                <ProfileAvatarLink
+                  userId={person.userId}
+                  src={person.photo}
+                  alt={person.name}
+                  fallback={person.name}
+                  size="sm"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
                     {person.name}
