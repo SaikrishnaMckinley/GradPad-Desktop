@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,10 +13,12 @@ import {
   resolveDonationMinAmount,
   resolveDonationSuggestedAmounts,
   type CommunityDonationFund,
+  type CommunityDonationQuoteResponse,
   type CommunityDonationSettings,
   type DonationStats,
 } from "@/lib/donations/community-donations";
 import { fundIconEmoji, getFundProgressColor } from "@/lib/donations/fund-ui";
+import { calculateDonationCheckout } from "@/lib/donations/stripe-fees";
 import {
   getDonationQuoteAction,
   startCommunityDonationAction,
@@ -50,18 +52,16 @@ export function DonationCheckoutForm({
   const allowCustom = resolveAllowCustomDonationAmount(fund, settings);
 
   const [preset, setPreset] = useState<number | "other">(
-    suggested.includes(25) ? 25 : suggested[0] ?? "other",
+    suggested.includes(25) ? 25 : (suggested[0] ?? "other"),
   );
   const [customAmount, setCustomAmount] = useState("");
   const [coverFees, setCoverFees] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [message, setMessage] = useState("");
-  const [quote, setQuote] = useState<Awaited<ReturnType<typeof getDonationQuoteAction>>["quote"]>(
-    null,
-  );
-  const [quotePending, startQuote] = useTransition();
+  const [serverQuote, setServerQuote] = useState<CommunityDonationQuoteResponse | null>(null);
   const [submitPending, startSubmit] = useTransition();
+  const quoteRequestId = useRef(0);
 
   const donationAmount = useMemo(() => {
     if (preset === "other") {
@@ -71,19 +71,50 @@ export function DonationCheckoutForm({
     return preset;
   }, [preset, customAmount]);
 
+  /** Instant UI — same math as gradpad-web; no network wait on chip clicks. */
+  const localBreakdown = useMemo(
+    () => calculateDonationCheckout(donationAmount, coverFees),
+    [donationAmount, coverFees],
+  );
+
+  const displayFeeAddon =
+    coverFees
+      ? (serverQuote?.processing_fee_addon ?? localBreakdown.processingFeeAddon)
+      : 0;
+  const displayTotal =
+    coverFees
+      ? (serverQuote?.total_charge ?? localBreakdown.totalCharge)
+      : donationAmount;
+
+  // Background reconcile with staging quote (do not blank the summary while waiting).
   useEffect(() => {
     if (donationAmount <= 0) {
-      setQuote(null);
+      setServerQuote(null);
       return;
     }
+
+    // Only debounce custom typing; presets / cover toggle refresh immediately in background.
+    const delay = preset === "other" ? 280 : 0;
+    const requestId = ++quoteRequestId.current;
+    const quoteKey = communityId || routeKey;
+
     const timer = window.setTimeout(() => {
-      startQuote(async () => {
-        const result = await getDonationQuoteAction(routeKey, donationAmount, coverFees);
-        if ("quote" in result) setQuote(result.quote ?? null);
-      });
-    }, 320);
+      void (async () => {
+        const result = await getDonationQuoteAction(quoteKey, donationAmount, coverFees);
+        if (requestId !== quoteRequestId.current) return;
+        if ("quote" in result && result.quote) {
+          setServerQuote(result.quote);
+        }
+      })();
+    }, delay);
+
     return () => window.clearTimeout(timer);
-  }, [routeKey, donationAmount, coverFees]);
+  }, [communityId, routeKey, donationAmount, coverFees, preset]);
+
+  // Drop stale server quote when amount/cover changes so local estimate shows until refresh.
+  useEffect(() => {
+    setServerQuote(null);
+  }, [donationAmount, coverFees]);
 
   const raised = stats?.total_raised ?? fund.total_raised ?? 0;
   const goal = stats?.goal_amount ?? fund.goal_amount;
@@ -180,7 +211,10 @@ export function DonationCheckoutForm({
               <button
                 key={amount}
                 type="button"
-                onClick={() => setPreset(amount)}
+                onClick={() => {
+                  setPreset(amount);
+                  setCustomAmount("");
+                }}
                 className={cn(
                   "min-w-[4rem] rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors",
                   preset === amount
@@ -257,19 +291,15 @@ export function DonationCheckoutForm({
               <span className="text-muted-foreground">Donation</span>
               <span>${donationAmount > 0 ? donationAmount.toFixed(2) : "0.00"}</span>
             </div>
-            {quote && quote.processing_fee_addon > 0 ? (
+            {coverFees && displayFeeAddon > 0 ? (
               <div className="flex justify-between gap-2">
                 <span className="text-muted-foreground">Processing fee</span>
-                <span>${quote.processing_fee_addon.toFixed(2)}</span>
+                <span>${displayFeeAddon.toFixed(2)}</span>
               </div>
             ) : null}
             <div className="flex justify-between gap-2 border-t border-border pt-2 font-semibold">
               <span>Total</span>
-              <span>
-                {quotePending
-                  ? "…"
-                  : `$${(quote?.total_charge ?? donationAmount).toFixed(2)}`}
-              </span>
+              <span>${(displayTotal > 0 ? displayTotal : 0).toFixed(2)}</span>
             </div>
           </div>
 
@@ -281,7 +311,8 @@ export function DonationCheckoutForm({
                 checked={coverFees}
                 onChange={(e) => setCoverFees(e.target.checked)}
               />
-              Cover processing fees so {communityName} receives the full ${donationAmount.toFixed(2)}
+              Cover processing fees so {communityName} receives the full $
+              {donationAmount.toFixed(2)}
             </label>
           ) : null}
 

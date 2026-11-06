@@ -134,9 +134,14 @@ export async function getDonationQuoteAction(
   amount: number,
   coverFees: boolean,
 ) {
-  const communityId = await resolveCommunityId(routeKey);
-  if (!communityId) return { error: "Community not found." };
   if (!Number.isFinite(amount) || amount <= 0) return { quote: null };
+
+  // Prefer UUID when the client already has it — skip list lookup latency.
+  const communityId =
+    /^[0-9a-f-]{36}$/i.test(routeKey.trim())
+      ? routeKey.trim()
+      : await resolveCommunityId(routeKey);
+  if (!communityId) return { error: "Community not found." };
 
   const result = await fetchCommunityDonationQuoteRaw(communityId, {
     amount,

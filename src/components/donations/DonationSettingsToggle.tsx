@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,13 +12,11 @@ type Props = {
 };
 
 export function DonationSettingsToggle({ slug, settings }: Props) {
-  const router = useRouter();
   const [state, formAction, pending] = useActionState(
     async (_prev: { error?: string; success?: string } | null, formData: FormData) => {
       const result = await updateDonationSettingsAction(slug, formData);
       if (result.success) toast.success(result.success);
       if (result.error) toast.error(result.error);
-      router.refresh();
       return result;
     },
     null,

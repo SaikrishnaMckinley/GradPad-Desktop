@@ -13,6 +13,8 @@ type Props = {
   funds: CommunityDonationFund[];
   payoutReady: boolean;
   totalRaised: number;
+  /** Defaults to manage-payout page. */
+  bankTabHref?: string;
 };
 
 export function DonationAdminFunds({
@@ -21,7 +23,9 @@ export function DonationAdminFunds({
   funds,
   payoutReady,
   totalRaised,
+  bankTabHref,
 }: Props) {
+  const bankHref = bankTabHref ?? `/communities/${slug}/manage-payout`;
   return (
     <div className="space-y-6">
       {!payoutReady ? (
@@ -31,10 +35,7 @@ export function DonationAdminFunds({
             Connect and complete Stripe payout setup before creating funds. Only funds linked to a
             payout account are visible to members.
           </p>
-          <Link
-            href={`/communities/${slug}/manage-payout`}
-            className={cn(buttonVariants({ size: "sm" }), "mt-4")}
-          >
+          <Link href={bankHref} className={cn(buttonVariants({ size: "sm" }), "mt-4")}>
             Set up bank account
           </Link>
         </Card>
