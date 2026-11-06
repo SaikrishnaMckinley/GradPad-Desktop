@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, Repeat2, Send } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatarLink } from "@/components/profile/ProfileAvatarLink";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PostReactionLikeButton } from "@/components/posts/PostReactionLikeButton";
@@ -317,7 +317,9 @@ export function PostEngagementBar({
       {commentsOpen && commentAllow ? (
         <div className="space-y-3 border-t border-border px-1 py-3">
           <div className="flex gap-2">
-            <Avatar
+            <ProfileAvatarLink
+              userId={shellUser.id}
+              linkable={false}
               alt={shellUser.fullName}
               fallback={shellUser.fullName}
               src={shellUser.avatarUrl}
@@ -355,7 +357,8 @@ export function PostEngagementBar({
               const busy = commentBusyId === comment.id;
               return (
                 <li key={comment.id} className="flex gap-2">
-                  <Avatar
+                  <ProfileAvatarLink
+                    userId={comment.authorUserId}
                     alt={comment.authorName}
                     fallback={comment.authorName}
                     src={comment.authorAvatarUrl}

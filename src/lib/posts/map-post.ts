@@ -17,6 +17,7 @@ export type FeedPostRow = {
   content: string;
   authorName: string;
   authorAvatarUrl: string | null;
+  authorUserId: string | null;
   createdAt: string;
   communityName: string | null;
   channelName: string | null;
@@ -163,7 +164,11 @@ function mapSinglePost(
   viewerUserId?: string | null,
 ): FeedPostRow {
   const post = row as ApiPost;
-  const { authorName, authorAvatarUrl } = resolveAuthor(post);
+  const author = authorFromOwner(post.owner);
+  const fallback = resolveAuthor(post);
+  const authorName = author.authorName !== "Member" ? author.authorName : fallback.authorName;
+  const authorAvatarUrl = author.authorAvatarUrl ?? fallback.authorAvatarUrl;
+  const authorUserId = author.authorUserId;
   const content = post.content ?? post.comment ?? "";
   const postType = post.post_type ?? "community";
 
@@ -178,6 +183,7 @@ function mapSinglePost(
     content,
     authorName,
     authorAvatarUrl,
+    authorUserId: author.authorUserId,
     createdAt: post.created_at ?? "",
     communityName: nameFromRelation(post.community) ?? fallbackCommunityName ?? null,
     channelName: postType === "channel" ? channelName : null,
