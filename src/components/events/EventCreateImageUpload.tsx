@@ -51,13 +51,16 @@ export function EventCreateImageUpload({ previewUrl, onPreviewChange, onFileChan
           type="button"
           onClick={() => inputRef.current?.click()}
           className={cn(
-            "flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border",
-            "bg-page-secondary/60 px-4 py-10 text-center transition-colors hover:border-primary/40 hover:bg-primary-light/20",
+            "flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-border",
+            "bg-page-secondary/60 px-3 py-7 text-center transition-colors hover:border-primary/40 hover:bg-primary-light/20",
+            "md:rounded-xl md:px-4 md:py-10",
           )}
         >
-          <ImagePlus className="h-8 w-8 text-primary" />
-          <p className="mt-3 text-sm font-semibold">Upload event image</p>
-          <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WEBP or GIF — max 10MB</p>
+          <ImagePlus className="h-6 w-6 text-primary md:h-8 md:w-8" />
+          <p className="mt-2 text-xs font-semibold md:mt-3 md:text-sm">Upload event image</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground md:mt-1 md:text-xs">
+            JPG, PNG, WEBP or GIF — max 10MB
+          </p>
         </button>
       )}
       <input

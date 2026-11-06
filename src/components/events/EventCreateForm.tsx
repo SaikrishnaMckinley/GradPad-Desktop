@@ -40,6 +40,7 @@ import { isPayoutAccountReady } from "@/lib/events/payout-accounts";
 import { cn } from "@/lib/utils/cn";
 import type { SidebarCommunity } from "@/types/community";
 
+
 type Props = {
   memberships: SidebarCommunity[];
   defaultCommunityId: string | null;
@@ -289,7 +290,7 @@ export function EventCreateForm({
 
   if (memberships.length === 0) {
     return (
-      <p className="w-full rounded-xl border border-border bg-page-secondary/80 px-4 py-3 text-sm text-muted-foreground">
+      <p className="w-full rounded-lg border border-border bg-page-secondary/80 px-3 py-2.5 text-xs text-muted-foreground md:rounded-xl md:px-4 md:py-3 md:text-sm">
         Join a community before creating an event.
       </p>
     );
@@ -298,7 +299,7 @@ export function EventCreateForm({
   return (
     <form
       action={formAction}
-      className="min-w-0 w-full max-w-full space-y-4 pb-24"
+      className="min-w-0 w-full max-w-full space-y-3 pb-0 md:space-y-4"
       onSubmit={() => {
         allowRedirectRef.current = true;
       }}
@@ -320,7 +321,7 @@ export function EventCreateForm({
             <input type="hidden" name="communityId" value={draft.communityId} />
             <div
               id="communityId"
-              className="flex h-11 w-full items-center rounded-lg border border-input-border bg-page-secondary/50 px-3 text-sm text-foreground"
+              className="flex h-10 w-full items-center rounded-lg border border-input-border bg-page-secondary/50 px-2.5 text-xs text-foreground md:h-11 md:px-3 md:text-sm"
             >
               {editCommunityName?.trim() ||
                 selectedCommunity?.name ||
@@ -336,7 +337,7 @@ export function EventCreateForm({
             <select
               id="communityId"
               name="communityId"
-              className="h-11 w-full appearance-none rounded-lg border border-input-border bg-page-secondary/50 px-3 pr-10 text-sm"
+              className="h-10 w-full appearance-none rounded-lg border border-input-border bg-page-secondary/50 px-2.5 pr-9 text-xs md:h-11 md:px-3 md:pr-10 md:text-sm"
               value={draft.communityId}
               onChange={(e) => updateDraft({ communityId: e.target.value })}
               required
@@ -348,7 +349,7 @@ export function EventCreateForm({
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground md:right-3 md:h-4 md:w-4" />
           </div>
         )}
       </EventCreateSection>
@@ -363,7 +364,7 @@ export function EventCreateForm({
       </EventCreateSection>
 
       <EventCreateSection title="Event details">
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           <div>
             <EventFieldLabel htmlFor="title" required>
               Event name
@@ -371,7 +372,7 @@ export function EventCreateForm({
             <Input
               id="title"
               name="title"
-              className="h-11 w-full bg-page-secondary/50"
+              className="h-10 w-full bg-page-secondary/50 text-xs md:h-11 md:text-sm"
               placeholder="e.g., Summer Music Festival"
               value={draft.title}
               onChange={(e) => updateDraft({ title: e.target.value })}
@@ -409,7 +410,7 @@ export function EventCreateForm({
               name="description"
               rows={5}
               maxLength={500}
-              className="w-full rounded-lg border border-input-border bg-page-secondary/50 px-3 py-2.5 text-sm"
+              className="w-full rounded-lg border border-input-border bg-page-secondary/50 px-2.5 py-2 text-xs md:px-3 md:py-2.5 md:text-sm"
               placeholder="What should attendees know?"
               value={draft.description}
               onChange={(e) => updateDraft({ description: e.target.value })}
@@ -445,7 +446,7 @@ export function EventCreateForm({
       </EventCreateSection>
 
       <EventCreateSection title="Event capacity">
-        <p className="mb-3 text-xs text-muted-foreground">
+        <p className="mb-2 text-[11px] text-muted-foreground md:mb-3 md:text-xs">
           Limit total people at the venue, or leave unlimited.
         </p>
         <SegmentedControl
@@ -469,7 +470,7 @@ export function EventCreateForm({
               name="capacity"
               type="number"
               min="2"
-              className="h-11 w-full bg-page-secondary/50"
+              className="h-10 w-full bg-page-secondary/50 text-xs md:h-11 md:text-sm"
               placeholder="e.g., 50"
               value={draft.capacity}
               onChange={(e) => updateDraft({ capacity: e.target.value })}
@@ -481,18 +482,24 @@ export function EventCreateForm({
       </EventCreateSection>
 
       <EventCreateSection>
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <p className="text-base font-semibold">
+        <div className="mb-3 flex items-center justify-between gap-2 md:mb-4">
+          <p className="text-sm font-semibold md:text-base">
             Ticket options<span className="text-error"> *</span>
           </p>
-          <Button type="button" size="sm" variant="secondary" className="gap-1" onClick={addTicket}>
-            <Plus className="h-4 w-4" />
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="h-8 gap-1 px-2.5 text-xs md:h-9 md:gap-1 md:px-3.5 md:text-sm"
+            onClick={addTicket}
+          >
+            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
             Add
           </Button>
         </div>
 
         {draft.communityId && selectedCommunity ? (
-          <div className="mb-6 w-full">
+          <div className="mb-4 w-full md:mb-6">
             <EventCreatePayoutPanel
               communityId={selectedCommunity.id}
               communitySlug={selectedCommunity.slug}
@@ -530,25 +537,25 @@ export function EventCreateForm({
           </div>
         ) : null}
 
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {draft.tickets.map((ticket, index) => (
-            <div key={ticket.id} className="relative rounded-xl border border-border p-4">
+            <div key={ticket.id} className="relative rounded-lg border border-border p-3 md:rounded-xl md:p-4">
               {draft.tickets.length > 1 ? (
                 <button
                   type="button"
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  className="absolute right-2 top-2 text-muted-foreground hover:text-foreground md:right-3 md:top-3"
                   onClick={() => removeTicket(ticket.id)}
                   aria-label="Remove ticket"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </button>
               ) : null}
-              <p className="text-xs font-semibold uppercase text-muted-foreground">
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground md:text-xs">
                 Ticket {index + 1}
               </p>
-              <div className="mt-3 space-y-3">
+              <div className="mt-2 space-y-2 md:mt-3 md:space-y-3">
                 <Input
-                  className="h-11 w-full bg-page-secondary/50"
+                  className="h-10 w-full bg-page-secondary/50 text-xs md:h-11 md:text-sm"
                   placeholder="Ticket name"
                   value={ticket.name}
                   onChange={(e) => updateTicket(ticket.id, { name: e.target.value })}
@@ -566,7 +573,7 @@ export function EventCreateForm({
                     type="number"
                     min="0"
                     step="0.01"
-                    className="h-11 w-full bg-page-secondary/50"
+                    className="h-10 w-full bg-page-secondary/50 text-xs md:h-11 md:text-sm"
                     placeholder="Price (USD)"
                     value={ticket.price}
                     onChange={(e) => updateTicket(ticket.id, { price: e.target.value })}
@@ -577,7 +584,7 @@ export function EventCreateForm({
           ))}
         </div>
         {hasPaidTicket && !draft.payoutAccountId && selectedCommunity ? (
-          <div className="mt-4 w-full rounded-lg border border-warning/30 bg-warning/5 px-3 py-2.5 text-sm text-foreground">
+          <div className="mt-3 w-full rounded-lg border border-warning/30 bg-warning/5 px-2.5 py-2 text-xs text-foreground md:mt-4 md:px-3 md:py-2.5 md:text-sm">
             Paid tickets need a verified bank account.{" "}
             <button
               type="button"
@@ -599,14 +606,14 @@ export function EventCreateForm({
           onChange={(donationsEnabled) => updateDraft({ donationsEnabled })}
         />
         {draft.donationsEnabled ? (
-          <div className="mt-4">
+          <div className="mt-3 md:mt-4">
             <EventFieldLabel htmlFor="donationGoal">Fundraising goal (USD, optional)</EventFieldLabel>
             <Input
               id="donationGoal"
               type="number"
               min="0"
               step="0.01"
-              className="h-11 w-full bg-page-secondary/50"
+              className="h-10 w-full bg-page-secondary/50 text-xs md:h-11 md:text-sm"
               placeholder="e.g., 5000"
               value={draft.donationGoal}
               onChange={(e) => updateDraft({ donationGoal: e.target.value })}
@@ -615,8 +622,12 @@ export function EventCreateForm({
         ) : null}
       </EventCreateSection>
 
-      <div className="sticky bottom-0 z-10 -mx-1 border-t border-border bg-page/95 py-4 backdrop-blur">
-        <Button type="submit" className="h-11 w-full text-base" disabled={pending}>
+      <div className="sticky bottom-0 z-10 -mx-1 border-t border-border bg-page/95 py-3 backdrop-blur md:py-4">
+        <Button
+          type="submit"
+          className="h-10 w-full text-sm md:h-11 md:text-base"
+          disabled={pending}
+        >
           {pending
             ? isEditMode
               ? "Saving…"
@@ -629,3 +640,4 @@ export function EventCreateForm({
     </form>
   );
 }
+

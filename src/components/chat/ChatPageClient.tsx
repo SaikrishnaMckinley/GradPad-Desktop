@@ -526,12 +526,19 @@ export function ChatPageClient({ initialConversations = [] }: Props) {
     Boolean(activeConversation?.userHasLeft);
 
   return (
-    <PageContainer>
+    <PageContainer
+      className={cn(
+        /* Fill main below mobile header + bottom nav — avoids a strip above the tab bar */
+        "max-lg:flex max-lg:min-h-0 max-lg:flex-1 max-lg:flex-col",
+        "max-lg:py-0 max-lg:pt-3 max-lg:pb-0 md:max-lg:pt-6",
+        "max-lg:[&>div]:flex max-lg:[&>div]:min-h-0 max-lg:[&>div]:flex-1 max-lg:[&>div]:flex-col",
+      )}
+    >
       <Card
         className={cn(
           "flex min-h-0 w-full overflow-hidden shadow-card",
-          "h-[calc(100dvh-3.5rem-4rem-2.5rem)]",
-          "md:h-[calc(100dvh-3.5rem-4rem-3rem)]",
+          /* Below lg: grow with main; lg+ keep fixed viewport height */
+          "max-lg:min-h-0 max-lg:flex-1",
           "lg:h-[calc(100dvh-3.875rem-3rem)]",
         )}
       >

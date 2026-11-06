@@ -45,8 +45,8 @@ export function EventCreateHostsSection({ communityId, hosts, onChange }: Props)
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
+    <div className="space-y-2 md:space-y-3">
+      <p className="text-[11px] text-muted-foreground md:text-xs">
         Add up to {MAX_HOSTS} co-hosts from your community (optional).
       </p>
       {hosts.length > 0 ? (
@@ -83,7 +83,7 @@ export function EventCreateHostsSection({ communityId, hosts, onChange }: Props)
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search members by name or email"
-            className="h-11 w-full rounded-lg border border-input-border bg-page-secondary/50 px-3 text-sm"
+            className="h-10 w-full rounded-lg border border-input-border bg-page-secondary/50 px-2.5 text-xs md:h-11 md:px-3 md:text-sm"
           />
           {results.length > 0 ? (
             <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-border bg-card py-1 shadow-card">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { formatEventFeedLabels } from "@/lib/events/format-event-datetime";
+
 import { cn } from "@/lib/utils/cn";
 import type { EventBadgeTone, EventListItem } from "@/types/events";
 

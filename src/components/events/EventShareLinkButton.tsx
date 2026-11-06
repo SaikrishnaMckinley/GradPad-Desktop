@@ -27,12 +27,12 @@ export function EventShareLinkButton({ eventId, title, className }: Props) {
       type="button"
       onClick={() => void onShare()}
       className={cn(
-        "flex h-10 w-[11.625rem] max-w-full shrink-0 items-center justify-center gap-2 rounded-[10px] border border-border bg-card px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-page-secondary",
+        "inline-flex h-9 min-h-0 w-[10.25rem] max-w-full shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[9px] border border-border bg-card px-2.5 text-xs font-medium leading-none text-foreground shadow-sm transition-colors hover:bg-page-secondary md:h-10 md:w-[11.625rem] md:gap-2 md:rounded-[10px] md:px-3 md:text-sm",
         className,
       )}
     >
       Share Link
-      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground md:h-4 md:w-4" />
     </button>
   );
 }

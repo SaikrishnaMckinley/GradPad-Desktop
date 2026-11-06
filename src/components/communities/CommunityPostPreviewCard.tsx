@@ -34,13 +34,13 @@ function PostCardContextStrip({
   return (
     <div
       className={[
-        "grid h-10 grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border",
+        "grid h-9 grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border md:h-10",
         className,
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      <div className="flex min-h-0 min-w-0 items-center gap-2 overflow-hidden text-sm leading-none">
+      <div className="flex min-h-0 min-w-0 items-center gap-2 overflow-hidden text-xs leading-none md:text-sm">
         <span className="shrink-0 text-muted-foreground">Community</span>
         <span className="shrink-0 text-muted-foreground" aria-hidden>
           &gt;
@@ -238,7 +238,7 @@ export function CommunityPostPreviewCard({
     <>
       <Card className="overflow-hidden rounded-lg border border-border shadow-sm">
         <PostCardContextStrip
-          className="px-4"
+          className="px-3 md:px-4"
           communityName={communityName}
           channelName={channelName}
           trailing={
@@ -285,7 +285,7 @@ export function CommunityPostPreviewCard({
             }
         />
 
-        <div className="px-4 pt-3">
+        <div className="px-3 pt-2.5 md:px-4 md:pt-3">
           {error ? (
             <p className="mb-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
               {error}
@@ -299,16 +299,16 @@ export function CommunityPostPreviewCard({
               fallback={authorName}
               src={authorAvatarUrl}
               size="md"
-              className="h-12 w-12 shrink-0"
+              className="h-10 w-10 shrink-0 md:h-12 md:w-12"
             />
             <div className="min-w-0 flex-1 pt-0.5">
               <ProfileNameLink
                 userId={authorUserId}
-                className="block truncate text-sm font-semibold leading-snug text-foreground"
+                className="block truncate text-[13px] font-semibold leading-snug text-foreground md:text-sm"
               >
                 {authorName}
               </ProfileNameLink>
-              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+              <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground md:text-xs">
                 {postedAt ? <span>{postedAt}</span> : null}
                 {postedAt ? <span>·</span> : null}
                 <Globe className="h-3 w-3" aria-hidden />
@@ -367,7 +367,9 @@ export function CommunityPostPreviewCard({
           ) : (
             <div className="mt-3 space-y-2">
               {viewTitle ? (
-                <p className="text-sm font-semibold leading-snug text-foreground">{viewTitle}</p>
+                <p className="text-[13px] font-semibold leading-snug text-foreground md:text-sm">
+                  {viewTitle}
+                </p>
               ) : null}
               <PostContentBody
                 html={viewContent}
@@ -388,7 +390,7 @@ export function CommunityPostPreviewCard({
                 setLightboxOpen(true);
               }}
             />
-            <div className="px-2 pb-2 pt-1">
+            <div className="px-1 pb-2 pt-0.5 md:px-2 md:pt-1">
               <PostEngagementBar {...engagementProps} variant="feed" />
             </div>
           </>

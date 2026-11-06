@@ -67,10 +67,10 @@ export function PostMediaPicker({ name = "media", className }: Props) {
           type="button"
           variant="secondary"
           size="sm"
-          className="gap-2"
+          className="h-8 gap-1.5 px-2.5 text-xs md:h-9 md:gap-2 md:px-3.5 md:text-sm"
           onClick={() => inputRef.current?.click()}
         >
-          <ImagePlus className="h-4 w-4" />
+          <ImagePlus className="h-3.5 w-3.5 md:h-4 md:w-4" />
           Add photos or videos
         </Button>
         {files.length > 0 ? (

@@ -171,60 +171,64 @@ export function EventRegisterClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <GradPadBlueHero>
         <Link
           href={`/events/${event.id}`}
-          className="text-sm font-medium text-white/85 hover:text-white"
+          className="text-xs font-medium text-white/85 hover:text-white md:text-sm"
         >
           ← Back to event
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-[1.65rem]">
+        <h1 className="mt-2 text-xl font-semibold tracking-tight md:mt-3 md:text-[1.65rem]">
           Event registration
         </h1>
-        <p className="mt-1 text-sm text-white/90">Choose your ticket and confirm your details.</p>
+        <p className="mt-1 text-xs text-white/90 md:text-sm">
+          Choose your ticket and confirm your details.
+        </p>
       </GradPadBlueHero>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <Card className="overflow-hidden rounded-2xl border-primary-border/60 p-6 shadow-card">
-          <h2 className="text-lg font-semibold">{event.title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-[1fr_340px]">
+        <Card className="overflow-hidden rounded-xl border-primary-border/60 p-4 shadow-card md:rounded-2xl md:p-6">
+          <h2 className="text-base font-semibold md:text-lg">{event.title}</h2>
+          <p className="mt-1 text-xs text-muted-foreground md:text-sm">
             {dayLabel}, {timeLabel} · {event.locationLabel ?? "TBD"}
           </p>
 
-          <div className="mt-6 rounded-xl border border-primary-border/50 bg-primary-light/35 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Your info</p>
-            <p className="mt-2 font-medium">{viewerName}</p>
-            <p className="text-sm text-muted-foreground">{viewerEmail}</p>
+          <div className="mt-4 rounded-lg border border-primary-border/50 bg-primary-light/35 p-3 md:mt-6 md:rounded-xl md:p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-primary md:text-xs">
+              Your info
+            </p>
+            <p className="mt-1.5 text-sm font-medium md:mt-2">{viewerName}</p>
+            <p className="text-xs text-muted-foreground md:text-sm">{viewerEmail}</p>
           </div>
 
-          <div className="mt-6 space-y-3">
-            <p className="text-sm font-semibold text-foreground">Select a ticket</p>
+          <div className="mt-4 space-y-2 md:mt-6 md:space-y-3">
+            <p className="text-xs font-semibold text-foreground md:text-sm">Select a ticket</p>
             {tickets.map((ticket) => (
               <button
                 key={ticket.id}
                 type="button"
                 onClick={() => setTicketId(ticket.id)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-xl border bg-card p-4 text-left shadow-sm transition-all",
+                  "flex w-full items-center justify-between rounded-lg border bg-card p-3 text-left shadow-sm transition-all md:rounded-xl md:p-4",
                   ticketId === ticket.id
                     ? "border-primary ring-2 ring-primary/20"
                     : "border-border hover:border-primary/40",
                 )}
               >
                 <div>
-                  <p className="font-semibold">{ticket.name}</p>
+                  <p className="text-sm font-semibold md:text-base">{ticket.name}</p>
                   {ticket.description ? (
-                    <p className="text-xs text-muted-foreground">{ticket.description}</p>
+                    <p className="text-[11px] text-muted-foreground md:text-xs">{ticket.description}</p>
                   ) : null}
                 </div>
-                <p className="font-semibold">${ticket.cost.toFixed(2)}</p>
+                <p className="text-sm font-semibold md:text-base">${ticket.cost.toFixed(2)}</p>
               </button>
             ))}
           </div>
 
-          <div className="mt-6 rounded-xl border border-primary-border/40 bg-primary-light/15 p-4">
-            <label className="flex items-center justify-between gap-3 text-sm font-medium text-foreground">
+          <div className="mt-4 rounded-lg border border-primary-border/40 bg-primary-light/15 p-3 md:mt-6 md:rounded-xl md:p-4">
+            <label className="flex items-center justify-between gap-3 text-xs font-medium text-foreground md:text-sm">
               Bring a plus-one
               <input
                 type="checkbox"
@@ -269,11 +273,11 @@ export function EventRegisterClient({
           ) : null}
         </Card>
 
-        <Card className="h-fit overflow-hidden rounded-2xl border-primary-border/60 p-0 shadow-card">
-          <div className="border-b border-primary-border/40 bg-primary-light/30 px-6 py-4">
-            <h3 className="text-sm font-semibold text-primary">Order summary</h3>
+        <Card className="h-fit overflow-hidden rounded-xl border-primary-border/60 p-0 shadow-card md:rounded-2xl">
+          <div className="border-b border-primary-border/40 bg-primary-light/30 px-4 py-2.5 md:px-6 md:py-4">
+            <h3 className="text-xs font-semibold text-primary md:text-sm">Order summary</h3>
           </div>
-          <div className="space-y-2 px-6 pt-4 text-sm">
+          <div className="space-y-1.5 px-4 pt-3 text-xs md:space-y-2 md:px-6 md:pt-4 md:text-sm">
             <div className="flex justify-between">
               <span>{selected?.name ?? "Ticket"}</span>
               <span>${ticketLine.toFixed(2)}</span>
@@ -302,13 +306,13 @@ export function EventRegisterClient({
                 <span>${donationFeeLine.toFixed(2)}</span>
               </div>
             ) : null}
-            <div className="flex justify-between border-t border-primary-border/50 pt-3 text-base font-semibold">
+            <div className="flex justify-between border-t border-primary-border/50 pt-2 text-sm font-semibold md:pt-3 md:text-base">
               <span>Total</span>
               <span className="text-primary">${total.toFixed(2)}</span>
             </div>
           </div>
 
-          <form action={formAction} className="space-y-4 px-6 pb-6 pt-5" onSubmit={handleSubmit}>
+          <form action={formAction} className="space-y-3 px-4 pb-4 pt-4 md:space-y-4 md:px-6 md:pb-6 md:pt-5" onSubmit={handleSubmit}>
             <Input
               placeholder="Promo code"
               className="border-primary-border/60 focus-visible:ring-primary/40"
@@ -339,7 +343,7 @@ export function EventRegisterClient({
             </Button>
           </form>
 
-          <p className="px-6 pb-6 text-xs leading-relaxed text-muted-foreground">
+          <p className="px-4 pb-4 text-[11px] leading-relaxed text-muted-foreground md:px-6 md:pb-6 md:text-xs">
             {EVENT_TRANSACTION_FEE_LABEL} includes Stripe and Grad Pad processing fees. Secure
             checkout on staging uses Stripe test mode.
           </p>

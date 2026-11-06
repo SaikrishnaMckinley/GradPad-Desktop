@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { Bell, Menu, Search } from "lucide-react";
-import { GradPadLogo } from "@/components/brand/GradPadLogo";
+import { Menu } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { GRADPAD_ICON } from "@/lib/fixtures/dev-shell-data";
 import type { ShellUser } from "@/types/shell-user";
 
 type MobileHeaderProps = {
@@ -13,41 +14,41 @@ type MobileHeaderProps = {
 
 export function MobileHeader({ onMenuOpen, shellUser }: MobileHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b border-border bg-card px-4 lg:hidden">
+    <header className="sticky top-0 z-40 flex h-[52px] items-center gap-2 border-b border-border bg-card px-2 pr-3 lg:hidden">
       <button
         type="button"
         onClick={onMenuOpen}
-        className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-foreground hover:bg-secondary"
         aria-label="Open menu"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-[18px] w-[18px]" strokeWidth={2.75} aria-hidden />
       </button>
-      <GradPadLogo compact className="absolute left-1/2 -translate-x-1/2" />
-      <div className="flex items-center gap-1">
-        <Link
-          href="/search"
-          className="flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary"
-          aria-label="Search"
-        >
-          <Search className="h-5 w-5" />
-        </Link>
-        <Link
-          href="/home"
-          className="relative flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary"
-          aria-label="Notifications"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-2.5 top-2 h-1.5 w-1.5 rounded-full bg-error" />
-        </Link>
-        <Link href="/settings" aria-label="Settings">
-          <Avatar
-            src={shellUser.avatarUrl}
-            alt={shellUser.fullName}
-            fallback={shellUser.fullName}
-            size="sm"
+      <Link
+        href="/home"
+        className="flex min-w-0 flex-1 items-center justify-center gap-2 py-1"
+        aria-label="Grad Pad home"
+      >
+        <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+          <Image
+            src={GRADPAD_ICON}
+            alt=""
+            fill
+            className="object-contain p-0.5"
+            sizes="32px"
           />
-        </Link>
-      </div>
+        </span>
+        <span className="truncate text-base font-bold leading-none tracking-tight text-foreground">
+          Grad Pad
+        </span>
+      </Link>
+      <Link href="/settings" className="shrink-0" aria-label="Settings">
+        <Avatar
+          src={shellUser.avatarUrl}
+          alt={shellUser.fullName}
+          fallback={shellUser.fullName}
+          size="sm"
+        />
+      </Link>
     </header>
   );
 }

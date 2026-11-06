@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GradPadBlueHero } from "@/components/ui/GradPadBlueHero";
 import { Input } from "@/components/ui/input";
+
 import { formatDonationAmount } from "@/lib/donations/community-donations";
 import { fundIconEmoji, getFundProgressColor } from "@/lib/donations/fund-ui";
 import {
@@ -109,16 +110,16 @@ export function EventRegisterDonationSection({
     return (
       <section
         aria-label="Community gift"
-        className="mt-8 overflow-hidden rounded-xl border border-primary-border/60 bg-card shadow-sm"
+        className="mt-6 overflow-hidden rounded-xl border border-primary-border/60 bg-card shadow-sm md:mt-8"
       >
-        <div className="p-5 sm:p-6">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 gap-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-light text-lg">
+        <div className="p-4 sm:p-5 md:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between md:gap-5">
+            <div className="flex min-w-0 gap-3 md:gap-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-light text-base md:h-11 md:w-11 md:text-lg">
                 {fundIconEmoji(fund?.icon ?? "general")}
               </span>
               <div className="min-w-0">
-                <p className="text-base font-semibold text-foreground">{headline}</p>
+                <p className="text-sm font-semibold text-foreground md:text-base">{headline}</p>
                 {value.amount > 0 ? (
                   <p className="mt-1 text-sm text-foreground">
                     Gift added:{" "}
@@ -166,11 +167,11 @@ export function EventRegisterDonationSection({
   }
 
   const amountPicker = (
-      <div className={cn("space-y-5", inline ? "" : "p-5 sm:p-6")}>
+      <div className={cn("space-y-3 md:space-y-5", inline ? "" : "p-4 sm:p-5 md:p-6")}>
         {funds.length > 1 ? (
           <div>
-            <p className="text-sm font-semibold text-foreground">Fund</p>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <p className="text-xs font-semibold text-foreground md:text-sm">Fund</p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5 md:mt-2 md:gap-2">
               {funds.map((f) => {
                 const active = (selectedFundId ?? funds[0]?.id) === f.id;
                 return (
@@ -183,7 +184,7 @@ export function EventRegisterDonationSection({
                       onChange({ ...value, fundId: f.id });
                     }}
                     className={cn(
-                      "rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors",
+                      "rounded-lg border px-2.5 py-1.5 text-left text-xs font-medium transition-colors md:rounded-xl md:px-3 md:py-2 md:text-sm",
                       active
                         ? "border-primary bg-primary-light text-primary"
                         : "border-border bg-white hover:border-primary/35",
@@ -199,14 +200,14 @@ export function EventRegisterDonationSection({
 
         <div>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="text-sm font-semibold text-foreground">Choose an amount</p>
+            <p className="text-xs font-semibold text-foreground md:text-sm">Choose an amount</p>
             {popularAmount && value.amount <= 0 ? (
               <p className="text-xs text-muted-foreground">
                 Suggested ${formatPreset(popularAmount)}
               </p>
             ) : null}
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+          <div className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-6 md:mt-3 md:gap-2">
             {suggested.map((amount) => (
               <button
                 key={amount}
@@ -214,7 +215,7 @@ export function EventRegisterDonationSection({
                 disabled={disabled}
                 onClick={() => selectPreset(amount)}
                 className={cn(
-                  "rounded-xl border py-3 text-sm font-semibold transition-all",
+                  "rounded-lg border py-2 text-xs font-semibold transition-all md:rounded-xl md:py-3 md:text-sm",
                   value.amount === amount && !value.isCustom
                     ? "border-primary bg-primary text-white shadow-sm"
                     : "border-border bg-white hover:border-primary/40 hover:bg-primary-light/30",
@@ -232,7 +233,7 @@ export function EventRegisterDonationSection({
                   onChange({ ...value, amount: 0, isCustom: true, fundId: fund?.id ?? value.fundId });
                 }}
                 className={cn(
-                  "rounded-xl border py-3 text-sm font-semibold",
+                  "rounded-lg border py-2 text-xs font-semibold md:rounded-xl md:py-3 md:text-sm",
                   showCustom || value.isCustom
                     ? "border-primary bg-primary text-white"
                     : "border-border hover:bg-primary-light/30",
@@ -246,7 +247,7 @@ export function EventRegisterDonationSection({
 
         {showCustom || value.isCustom ? (
           <div>
-            <p className="mb-2 text-sm font-semibold text-foreground">Custom amount</p>
+            <p className="mb-1.5 text-xs font-semibold text-foreground md:mb-2 md:text-sm">Custom amount</p>
             <Input
               inputMode="decimal"
               placeholder="0.00"
@@ -269,7 +270,7 @@ export function EventRegisterDonationSection({
         ) : null}
 
         {value.amount > 0 && effectiveSettings.allow_fee_coverage !== false ? (
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-primary/15 bg-primary-light/25 p-4 text-sm leading-snug">
+          <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-primary/15 bg-primary-light/25 p-3 text-xs leading-snug md:gap-3 md:rounded-xl md:p-4 md:text-sm">
             <input
               type="checkbox"
               className="mt-0.5 rounded border-input-border accent-primary"
@@ -285,7 +286,7 @@ export function EventRegisterDonationSection({
         ) : null}
 
         {!inline && value.amount > 0 ? (
-          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+          <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3 md:gap-3 md:pt-4">
             <p className="text-sm text-muted-foreground">
               Selected:{" "}
               <span className="font-semibold text-primary">${formatPreset(value.amount)}</span>
@@ -321,9 +322,9 @@ export function EventRegisterDonationSection({
 
   if (inline) {
     return (
-      <section aria-label="Community gift" className="space-y-4">
-        <div className="flex gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-light text-lg">
+      <section aria-label="Community gift" className="space-y-3 md:space-y-4">
+        <div className="flex gap-2.5 md:gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-light text-base md:h-10 md:w-10 md:text-lg">
             {fundIconEmoji(fund?.icon ?? "general")}
           </span>
           <div className="min-w-0">
@@ -350,17 +351,17 @@ export function EventRegisterDonationSection({
   return (
     <section
       aria-label="Community gift"
-      className="mt-8 overflow-hidden rounded-2xl border border-primary-border/60 bg-card shadow-card"
+      className="mt-6 overflow-hidden rounded-2xl border border-primary-border/60 bg-card shadow-card md:mt-8"
     >
       <GradPadBlueHero size="compact" className="rounded-none rounded-t-2xl">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20 text-lg ring-1 ring-white/25">
+        <div className="flex items-start justify-between gap-2 md:gap-3">
+          <div className="flex min-w-0 gap-2.5 md:gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/20 text-base ring-1 ring-white/25 md:h-10 md:w-10 md:text-lg">
               {fundIconEmoji(fund?.icon ?? "general")}
             </span>
             <div className="min-w-0">
-              <p className="text-base font-semibold text-white">{headline}</p>
-              <p className="mt-0.5 text-sm text-white/90">
+              <p className="text-sm font-semibold text-white md:text-base">{headline}</p>
+              <p className="mt-0.5 text-xs text-white/90 md:text-sm">
                 Optional gift — your ticket is already reserved.
               </p>
             </div>
@@ -376,7 +377,7 @@ export function EventRegisterDonationSection({
         </div>
 
         {pctLabel != null && goal ? (
-          <div className="mt-4 rounded-xl bg-white/15 p-3 ring-1 ring-white/20">
+          <div className="mt-3 rounded-lg bg-white/15 p-2.5 ring-1 ring-white/20 md:mt-4 md:rounded-xl md:p-3">
             <div className="flex items-baseline justify-between gap-2 text-xs text-white/90">
               <span className="font-semibold text-white">
                 ${formatDonationAmount(raised, 0)} raised
@@ -397,7 +398,7 @@ export function EventRegisterDonationSection({
       </GradPadBlueHero>
 
       {description ? (
-        <p className="border-b border-primary-border/40 bg-primary-light/20 px-5 py-3 text-sm leading-relaxed text-muted-foreground sm:px-6">
+        <p className="border-b border-primary-border/40 bg-primary-light/20 px-4 py-2.5 text-xs leading-relaxed text-muted-foreground sm:px-5 md:px-6 md:py-3 md:text-sm">
           {description}
         </p>
       ) : null}

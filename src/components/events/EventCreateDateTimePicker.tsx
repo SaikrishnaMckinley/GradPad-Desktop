@@ -85,7 +85,7 @@ export function EventCreateDateTimePicker({ startAt, endAt, onStartChange, onEnd
   }
 
   return (
-    <div className="w-full rounded-xl border border-border bg-page-secondary/50 p-4 sm:p-5">
+    <div className="w-full rounded-lg border border-border bg-page-secondary/50 p-3 md:rounded-xl md:p-5">
       <DateTimeRow
         label="Start"
         date={start}
@@ -95,7 +95,7 @@ export function EventCreateDateTimePicker({ startAt, endAt, onStartChange, onEnd
         }}
         onTime={() => openTime("start")}
       />
-      <div className="my-3 border-t border-border" />
+      <div className="my-2 border-t border-border md:my-3" />
       <DateTimeRow
         label="End"
         date={end}
@@ -193,14 +193,14 @@ function DateTimeRow({
   onTime: () => void;
 }) {
   return (
-    <div className="grid w-full grid-cols-[4.5rem_1fr] items-center gap-2 sm:grid-cols-[5rem_1fr] sm:gap-3">
-      <span className="text-sm font-medium text-muted-foreground">{label}</span>
-      <div className="flex w-full min-w-0 gap-2 sm:gap-3">
+    <div className="grid w-full grid-cols-[3.5rem_1fr] items-center gap-1.5 md:grid-cols-[5rem_1fr] md:gap-3">
+      <span className="text-xs font-medium text-muted-foreground md:text-sm">{label}</span>
+      <div className="flex w-full min-w-0 gap-1.5 md:gap-3">
         <button
           type="button"
           onClick={onDate}
           className={cn(
-            "h-11 min-w-0 flex-[1.35] rounded-lg border px-3 text-left text-sm sm:px-4",
+            "h-9 min-w-0 flex-[1.35] rounded-lg border px-2 text-left text-xs md:h-11 md:px-4 md:text-sm",
             hasError
               ? "border-error/40 bg-error/5 text-error"
               : "border-border bg-card hover:bg-page-secondary",
@@ -212,7 +212,7 @@ function DateTimeRow({
           type="button"
           onClick={onTime}
           className={cn(
-            "h-11 min-w-[6.75rem] shrink-0 flex-1 rounded-lg border px-3 text-left text-sm sm:min-w-[7.5rem] sm:flex-none sm:w-[8.25rem] sm:px-4",
+            "h-9 min-w-[6.75rem] shrink-0 flex-1 rounded-lg border px-3 text-left text-xs md:h-11 md:min-w-[7.5rem] md:flex-none md:w-[8.25rem] md:px-4 md:text-sm",
             hasError
               ? "border-error/40 bg-error/5 text-error"
               : "border-border bg-card hover:bg-page-secondary",

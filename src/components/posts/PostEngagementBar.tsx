@@ -249,7 +249,10 @@ export function PostEngagementBar({
   }
 
   const actionBtn =
-    "flex flex-1 items-center justify-center gap-2 rounded-md py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-page-secondary disabled:opacity-60";
+    "flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-page-secondary disabled:opacity-60 md:gap-2 md:py-3 md:text-sm";
+
+  const actionBtnToolbarMobile =
+    "flex w-auto max-w-none flex-none shrink-0 items-center justify-center gap-1.5 rounded-md py-2 pl-0.5 pr-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-page-secondary disabled:opacity-60";
 
   const showStats = likesCount > 0 || comments.length > 0 || shareCount > 0;
 
@@ -258,7 +261,7 @@ export function PostEngagementBar({
       {error ? <p className="px-1 py-2 text-xs text-destructive">{error}</p> : null}
 
       {showStats ? (
-        <div className="flex items-center justify-between px-1 py-2 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between px-0 py-1.5 text-[11px] text-muted-foreground md:px-1 md:py-2 md:text-xs">
           <div className="flex items-center gap-1.5">
             {likesCount > 0 ? (
               <button type="button" className="hover:text-primary hover:underline">
@@ -279,16 +282,58 @@ export function PostEngagementBar({
               </button>
             ) : null}
             {shareCount > 0 ? (
-              <span>
-                {comments.length > 0 ? " · " : ""}
-                {shareCount} repost{shareCount === 1 ? "" : "s"}
-              </span>
+              <>
+                {comments.length > 0 ? <span className="hidden md:inline"> · </span> : null}
+                <span className="hidden md:inline">
+                  {shareCount} repost{shareCount === 1 ? "" : "s"}
+                </span>
+              </>
             ) : null}
           </div>
         </div>
       ) : null}
 
-      <div className="flex border-t border-border">
+      {/* Mobile: pin Like left, Send right, Comment centered */}
+      <div
+        className={cn(
+          "grid gap-0 border-t border-border md:hidden",
+          commentAllow ? "grid-cols-3" : "grid-cols-2",
+        )}
+      >
+        <div className="flex min-w-0 justify-start pl-2">
+          <PostReactionLikeButton
+            likedByMe={likedByMe}
+            reactionType={reactionType}
+            onToggle={onReactionToggle}
+            compact
+          />
+        </div>
+        {commentAllow ? (
+          <div className="flex min-w-0 justify-center">
+            <button
+              type="button"
+              className={actionBtnToolbarMobile}
+              onClick={() => setCommentsOpen((v) => !v)}
+            >
+              <MessageCircle className="h-4 w-4" />
+              Comment
+            </button>
+          </div>
+        ) : null}
+        <div className="flex min-w-0 justify-end pr-2">
+          <button
+            type="button"
+            className={cn(actionBtnToolbarMobile, "justify-end pl-1 pr-0.5")}
+            onClick={runShare}
+          >
+            <Send className="h-4 w-4" />
+            Send
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop: unchanged four-equal-action row */}
+      <div className="hidden border-t border-border md:flex">
         <PostReactionLikeButton
           likedByMe={likedByMe}
           reactionType={reactionType}
@@ -304,7 +349,11 @@ export function PostEngagementBar({
             Comment
           </button>
         ) : null}
-        <button type="button" className={actionBtn} onClick={runShare}>
+        <button
+          type="button"
+          className={cn(actionBtn, "hidden md:flex")}
+          onClick={runShare}
+        >
           <Repeat2 className="h-[18px] w-[18px]" />
           Repost
         </button>
@@ -315,8 +364,8 @@ export function PostEngagementBar({
       </div>
 
       {commentsOpen && commentAllow ? (
-        <div className="space-y-3 border-t border-border px-1 py-3">
-          <div className="flex gap-2">
+        <div className="space-y-3 border-t border-border px-0 py-2.5 md:px-1 md:py-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end md:gap-2">
             <ProfileAvatarLink
               userId={shellUser.id}
               linkable={false}
@@ -324,14 +373,14 @@ export function PostEngagementBar({
               fallback={shellUser.fullName}
               src={shellUser.avatarUrl}
               size="sm"
-              className="mt-1 shrink-0"
+              className="mt-0 hidden shrink-0 sm:mt-1 sm:block"
             />
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value.slice(0, 300))}
               placeholder="Add a comment…"
               rows={2}
-              className="min-h-[44px] flex-1 resize-none rounded-full border border-input-border bg-page-secondary/50 px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="min-h-[40px] w-full flex-1 resize-none rounded-xl border border-input-border bg-page-secondary/50 px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 md:min-h-[44px] md:rounded-full md:px-4 md:py-2.5 md:text-sm"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -342,7 +391,7 @@ export function PostEngagementBar({
             <Button
               type="button"
               size="sm"
-              className="self-end rounded-full px-4"
+              className="w-full shrink-0 rounded-xl px-3 py-2 text-xs sm:w-auto md:self-end md:rounded-full md:px-4 md:text-sm"
               disabled={commentSubmitting || !draft.trim()}
               onClick={() => void onSubmitComment()}
             >

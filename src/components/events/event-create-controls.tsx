@@ -17,12 +17,12 @@ export function SettingToggleRow({
   label: string;
 }) {
   return (
-    <div className="grid w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:items-center sm:gap-4">
+    <div className="grid w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-2 md:items-center md:gap-4">
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
+        <p className="text-xs font-semibold text-foreground md:text-sm">{title}</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground md:text-xs">{description}</p>
       </div>
-      <div className="flex shrink-0 justify-self-end pt-0.5 sm:pt-0">
+      <div className="flex shrink-0 justify-self-end pt-0.5 max-md:origin-right max-md:scale-[0.92] md:scale-100 md:pt-0">
         <ToggleSwitch checked={checked} onChange={onChange} label={label} />
       </div>
     </div>
@@ -91,7 +91,7 @@ export function SegmentedControl<T extends string>({
             type="button"
             onClick={() => onChange(opt.value)}
             className={cn(
-              "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
+              "w-full rounded-lg py-2 text-xs font-semibold transition-colors md:py-2.5 md:text-sm",
               active
                 ? "bg-primary text-white shadow-sm"
                 : "text-muted-foreground hover:text-foreground",

@@ -35,7 +35,7 @@ export function PageContainer({
     return (
       <div
         className={cn(
-          "mx-auto flex w-full max-w-[1440px] min-h-0 flex-1 flex-col px-4 py-5 md:px-6 md:py-6 lg:px-8",
+          "mx-auto flex w-full max-w-[1440px] min-h-0 flex-1 flex-col px-2 py-3 md:px-6 md:py-6 lg:px-8",
           "xl:overflow-hidden xl:py-6",
           className,
         )}
@@ -57,7 +57,7 @@ export function PageContainer({
   return (
     <div
       className={cn(
-        "mx-auto w-full max-w-[1440px] px-4 py-5 md:px-6 md:py-6 lg:px-8",
+        "mx-auto w-full max-w-[1440px] px-2 py-3 md:px-6 md:py-6 lg:px-8",
         withRightRail &&
           "grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-8",
         mainColumnScroll &&

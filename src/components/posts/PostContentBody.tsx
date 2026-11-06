@@ -53,7 +53,8 @@ export function PostContentBody({
       <div
         ref={bodyRef}
         className={cn(
-          "text-sm leading-relaxed text-foreground [&_strong]:font-semibold",
+          "text-[13px] leading-relaxed text-foreground md:text-sm [&_strong]:font-semibold",
+          "text-justify [text-align-last:left] md:text-left",
           clamped && "line-clamp-6",
         )}
         dangerouslySetInnerHTML={{ __html: safe }}
@@ -61,7 +62,7 @@ export function PostContentBody({
       {showMore ? (
         <button
           type="button"
-          className="mt-1 text-sm font-semibold text-muted-foreground hover:text-primary hover:underline"
+          className="mt-1 text-xs font-semibold text-muted-foreground hover:text-primary hover:underline md:text-sm"
           onClick={onExpand}
         >
           …more

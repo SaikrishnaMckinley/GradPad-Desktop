@@ -153,7 +153,7 @@ export function HomeFeedClient({
 
   return (
     <div className="space-y-5 pb-6">
-      <div className="flex flex-wrap gap-2">
+      <div className="hidden flex-wrap gap-2 md:flex">
         {memberships.map((community) => {
           const active = community.id === activeCommunityId;
           return (
@@ -178,14 +178,17 @@ export function HomeFeedClient({
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold">{activeCommunity.name}</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-base font-semibold md:text-lg">{activeCommunity.name}</h2>
+              <p className="text-xs text-muted-foreground md:text-sm">
                 {loadingId === activeCommunity.id ? "Updating feed…" : "Latest posts in this community"}
               </p>
             </div>
             <Link
               href={`/create?tab=post&community=${encodeURIComponent(activeCommunity.id)}`}
-              className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}
+              className={cn(
+                buttonVariants({ variant: "secondary", size: "sm" }),
+                "hidden md:inline-flex",
+              )}
             >
               Create post
             </Link>

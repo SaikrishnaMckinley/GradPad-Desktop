@@ -12,7 +12,7 @@ export function GradPadBlueHero({ children, className, size = "default" }: Props
     <div
       className={cn(
         "relative overflow-hidden rounded-2xl text-white shadow-md",
-        size === "compact" ? "px-5 py-5 md:px-6 md:py-6" : "px-6 py-6 md:px-8 md:py-7",
+        size === "compact" ? "px-4 py-3.5 md:px-6 md:py-6" : "px-5 py-4 md:px-8 md:py-7",
         className,
       )}
       style={gradPadBlueGradientStyle()}

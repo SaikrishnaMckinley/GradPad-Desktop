@@ -123,7 +123,7 @@ export function EventLocationAutocomplete({ value, locationId, onChange }: Props
   return (
     <div className="relative w-full">
       <div className="relative">
-        <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <MapPin className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground md:left-3 md:h-4 md:w-4" />
         <input
           type="text"
           name="location"
@@ -135,7 +135,7 @@ export function EventLocationAutocomplete({ value, locationId, onChange }: Props
           }}
           placeholder="Search address or type Online"
           className={cn(
-            "h-11 w-full rounded-lg border border-input-border bg-page-secondary/50 py-2 pl-10 pr-3 text-sm",
+            "h-10 w-full rounded-lg border border-input-border bg-page-secondary/50 py-2 pl-9 pr-2.5 text-xs md:h-11 md:pl-10 md:pr-3 md:text-sm",
             resolving && "pr-24",
           )}
           required

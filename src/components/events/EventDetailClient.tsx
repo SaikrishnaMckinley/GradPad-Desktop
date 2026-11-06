@@ -146,16 +146,16 @@ export function EventDetailClient({
   }, [state, router]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <Link
         href="/events"
-        className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1 px-0")}
+        className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1 px-0 text-xs md:text-sm")}
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
         Back to events
       </Link>
 
-      <div className="relative aspect-[21/9] overflow-hidden rounded-2xl bg-page-secondary">
+      <div className="relative aspect-[21/9] overflow-hidden rounded-xl md:rounded-2xl bg-page-secondary">
         {heroFailed ? (
           <div className="flex h-full min-h-[160px] w-full flex-col items-center justify-center gap-1 px-6 text-center">
             <p className="text-lg font-semibold text-foreground">{event.title}</p>
@@ -177,33 +177,37 @@ export function EventDetailClient({
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-6">
-          <Card className="p-6 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-4 md:space-y-6">
+          <Card className="p-4 shadow-card md:p-6">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-primary md:text-xs">
               {event.isPublic ? "Public event" : "Private event"}
             </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">{event.title}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{event.communityName}</p>
+            <h1 className="mt-1.5 text-xl font-semibold tracking-tight md:mt-2 md:text-2xl">
+              {event.title}
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground md:text-sm">{event.communityName}</p>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 md:mt-6 md:gap-3">
               <InfoTile icon={Calendar} label={`${dayLabel}, ${timeLabel}`} />
               <InfoTile icon={MapPin} label={event.locationLabel ?? "Location TBD"} />
               <InfoTile icon={Tag} label={isPaid ? `$${price} ticket price` : "Free"} />
               <InfoTile icon={Users} label={attendanceTile} />
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center gap-2.5">
+            <div className="mt-4 flex flex-wrap items-stretch gap-2 md:mt-6 md:gap-2.5">
               <CalendarFlipButton event={calendarEvent} />
               <EventShareLinkButton eventId={event.id} title={event.title} />
             </div>
           </Card>
 
-          <Card className="p-6 shadow-card">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <Card className="p-4 shadow-card md:p-6">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground md:text-sm">
               About the event
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-foreground">{event.description}</p>
+            <p className="mt-2 text-xs leading-relaxed text-foreground md:mt-3 md:text-sm">
+              {event.description}
+            </p>
           </Card>
 
           <EventAttendeesCard
@@ -214,8 +218,8 @@ export function EventDetailClient({
           />
         </div>
 
-        <div className="space-y-5">
-          <Card className="p-5 shadow-card">
+        <div className="space-y-4 md:space-y-5">
+          <Card className="p-4 shadow-card md:p-5">
             {event.isOwner ? (
               <>
                 <span className="inline-block rounded-lg bg-primary-light px-2.5 py-1 text-xs font-semibold text-primary">
@@ -340,8 +344,8 @@ export function EventDetailClient({
             )}
           </Card>
 
-          <Card className="p-5 shadow-card">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <Card className="p-4 shadow-card md:p-5">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground md:text-sm">
               Hosted by
             </h3>
             <div className="mt-4 flex items-center gap-3">
@@ -397,9 +401,9 @@ function InfoTile({
   label: string;
 }) {
   return (
-    <div className="flex gap-3 rounded-xl border border-border bg-page-secondary/30 p-3">
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-      <p className="text-sm font-medium leading-snug">{label}</p>
+    <div className="flex gap-2 rounded-lg border border-border bg-page-secondary/30 p-2.5 md:gap-3 md:rounded-xl md:p-3">
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary md:h-4 md:w-4" />
+      <p className="text-xs font-medium leading-snug md:text-sm">{label}</p>
     </div>
   );
 }

@@ -98,12 +98,18 @@ export function CalendarFlipButton({ event, className }: Props) {
   }
 
   return (
-    <div className={cn("w-[11.625rem] max-w-full shrink-0", className)}>
+    <div
+      className={cn(
+        /* leading-[0] removes inline/baseline strut gap next to sibling buttons */
+        "flex w-[10.25rem] max-w-full shrink-0 items-stretch leading-[0] md:w-[11.625rem]",
+        className,
+      )}
+    >
       <button
         type="button"
         aria-expanded={flipped}
         onClick={() => setFlipped((v) => !v)}
-        className="h-10 w-full [perspective:800px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        className="flex h-9 w-full min-h-0 cursor-pointer items-stretch border-0 bg-transparent p-0 [perspective:800px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 md:h-10"
       >
         <span
           className={cn(
@@ -111,9 +117,16 @@ export function CalendarFlipButton({ event, className }: Props) {
             flipped && "[transform:rotateY(180deg)]",
           )}
         >
-          <span className="absolute inset-0 flex items-center justify-center gap-1.5 rounded-[10px] bg-primary px-3 text-sm font-medium text-white shadow-sm [backface-visibility:hidden]">
+          <span className="absolute inset-0 flex items-center justify-center gap-1 rounded-[9px] bg-primary px-2.5 text-xs font-medium text-white shadow-sm [backface-visibility:hidden] md:gap-1.5 md:rounded-[10px] md:px-3 md:text-sm">
             <span className="whitespace-nowrap">Add to Calendar</span>
-            <svg width="18" height="18" viewBox="0 0 14 16" fill="none" aria-hidden>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 14 16"
+              fill="none"
+              aria-hidden
+              className="h-4 w-4 md:h-[18px] md:w-[18px]"
+            >
               <path
                 d="M9.66667 1.33398V4.00065M4.33333 1.33398V4.00065M1 6.66732H13M2.33333 2.66732H11.6667C12.403 2.66732 13 3.26427 13 4.00065V13.334C13 14.0704 12.403 14.6673 11.6667 14.6673H2.33333C1.59695 14.6673 1 14.0704 1 13.334V4.00065C1 3.26427 1.59695 2.66732 2.33333 2.66732Z"
                 stroke="white"
@@ -123,7 +136,7 @@ export function CalendarFlipButton({ event, className }: Props) {
               />
             </svg>
           </span>
-          <span className="absolute inset-0 flex items-center justify-center gap-1.5 rounded-[10px] bg-primary px-2 shadow-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
+          <span className="absolute inset-0 flex items-center justify-center gap-1 rounded-[9px] bg-primary px-1.5 shadow-sm [backface-visibility:hidden] [transform:rotateY(180deg)] md:gap-1.5 md:rounded-[10px] md:px-2">
             {CALENDAR_SERVICES.map((service, index) => (
               <span
                 key={service.id}

@@ -59,7 +59,7 @@ export function ChannelForm({
 
   if (memberships.length === 0) {
     return (
-      <p className="rounded-xl border border-border bg-page-secondary/80 px-4 py-3 text-sm text-muted-foreground">
+      <p className="rounded-lg border border-border bg-page-secondary/80 px-3 py-2.5 text-xs text-muted-foreground md:rounded-xl md:px-4 md:py-3 md:text-sm">
         Join or create a community first, then you can add channels for members to discuss topics.
       </p>
     );
@@ -70,7 +70,7 @@ export function ChannelForm({
   return (
     <form
       action={formAction}
-      className="space-y-6"
+      className="space-y-4 md:space-y-6"
       onSubmit={() => {
         allowRedirectRef.current = true;
       }}
@@ -82,7 +82,7 @@ export function ChannelForm({
       />
 
       {state?.error ? (
-        <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-xs text-destructive md:rounded-xl md:px-4 md:py-3 md:text-sm">
           {state.error}
         </p>
       ) : null}
@@ -90,16 +90,16 @@ export function ChannelForm({
       <input type="hidden" name="communityId" value={communityId} />
       <input type="hidden" name="communityRouteKey" value={communityRouteKey} />
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         <div>
-          <label className="mb-1.5 block text-sm font-medium" htmlFor="communityId">
+          <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="communityId">
             Community
           </label>
           <select
             id="communityId"
             value={communityId}
             onChange={(e) => onCommunityChange(e.target.value)}
-            className="h-11 w-full rounded-xl border border-input-border bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="h-10 w-full rounded-lg border border-input-border bg-card px-2.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 md:h-11 md:rounded-xl md:px-3 md:text-sm"
           >
             {memberships.map((m) => (
               <option key={m.id} value={m.id}>
@@ -110,13 +110,14 @@ export function ChannelForm({
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium" htmlFor="channel-name">
+          <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="channel-name">
             Channel name
           </label>
           <Input
             id="channel-name"
             name="name"
             value={name}
+            className="h-10 text-xs md:h-11 md:text-sm"
             onChange={(e) => setName(e.target.value)}
             placeholder="General, Career advice, …"
             required
@@ -124,7 +125,7 @@ export function ChannelForm({
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium" htmlFor="description">
+          <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="description">
             Description
           </label>
           <textarea
@@ -132,42 +133,61 @@ export function ChannelForm({
             name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="min-h-[120px] w-full rounded-xl border border-input-border bg-card px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="min-h-[96px] w-full rounded-lg border border-input-border bg-card px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 md:min-h-[120px] md:rounded-xl md:px-4 md:py-3 md:text-sm"
             placeholder="What will members talk about in this channel?"
             required
             minLength={25}
           />
-          <p className="mt-1 text-xs text-muted-foreground">At least 25 characters (same as web).</p>
+          <p className="mt-1 text-[11px] text-muted-foreground md:text-xs">
+            At least 25 characters (same as web).
+          </p>
         </div>
 
         <div>
-          <span className="mb-1.5 block text-sm font-medium">Visibility</span>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <label className="flex items-center gap-2">
-              <input type="radio" name="visibility" value="public" defaultChecked />
+          <span className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm">Visibility</span>
+          <div className="flex flex-wrap gap-3 text-xs md:gap-4 md:text-sm">
+            <label className="flex items-center gap-1.5 md:gap-2">
+              <input
+                type="radio"
+                name="visibility"
+                value="public"
+                defaultChecked
+                className="h-3.5 w-3.5 md:h-4 md:w-4"
+              />
               Public
             </label>
-            <label className="flex items-center gap-2">
-              <input type="radio" name="visibility" value="private" />
+            <label className="flex items-center gap-1.5 md:gap-2">
+              <input type="radio" name="visibility" value="private" className="h-3.5 w-3.5 md:h-4 md:w-4" />
               Private
             </label>
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium" htmlFor="passcode">
+          <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="passcode">
             Passcode (optional)
           </label>
-          <Input id="passcode" name="passcode" type="text" autoComplete="off" placeholder="For private channels" />
+          <Input
+            id="passcode"
+            name="passcode"
+            type="text"
+            autoComplete="off"
+            placeholder="For private channels"
+            className="h-10 text-xs md:h-11 md:text-sm"
+          />
         </div>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[11px] leading-relaxed text-muted-foreground md:text-xs md:leading-normal">
           Channel logo is required on staging. Use the camera on the preview card above.
         </p>
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={pending}>
+        <Button
+          type="submit"
+          className="h-9 px-4 text-xs md:h-10 md:text-sm"
+          disabled={pending}
+        >
           {pending ? "Creating…" : "Create channel"}
         </Button>
       </div>

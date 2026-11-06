@@ -17,6 +17,9 @@ import type { CommunityDetail } from "@/types/community";
 import type { PostCommentRow } from "@/lib/posts/map-post";
 import { cn } from "@/lib/utils/cn";
 
+const hideScrollbarMobile =
+  "max-md:[scrollbar-width:none] max-md:[-ms-overflow-style:none] max-md:[&::-webkit-scrollbar]:hidden";
+
 export type CommunityChannelRow = {
   id: string;
   slug: string;
@@ -95,6 +98,7 @@ export function CommunityDetailContent({
   const canSeeContent = isMember || community.visibility === "public";
   const isPendingJoin = community.membershipStatus === "pending";
 
+
   return (
     <>
       {isPendingJoin ? (
@@ -128,8 +132,8 @@ export function CommunityDetailContent({
             />
           )}
         </div>
-        <div className="relative px-5 pb-6 pt-0 md:px-8">
-          <div className="absolute right-4 top-14 z-10 flex shrink-0 gap-1 md:right-8 md:top-13">
+        <div className="relative px-4 pb-5 pt-0 md:px-8 md:pb-6">
+          <div className="absolute right-4 top-14 z-10 flex shrink-0 gap-1 md:right-8 md:top-12">
             <CommunityShareMenu communityId={community.id} communityName={community.name} />
             <CommunityMoreMenu communitySlug={community.slug} canManage={canManage} />
           </div>
@@ -140,15 +144,15 @@ export function CommunityDetailContent({
             logoUrl={community.logoUrl}
             shape="rounded"
             size="lg"
-            className="-mt-10 h-20 w-20 shrink-0 text-xl ring-4 ring-card"
+            className="-mt-9 h-[4.5rem] w-[4.5rem] shrink-0 text-lg ring-4 ring-card md:-mt-10 md:h-20 md:w-20 md:text-xl"
           />
-          <div className="mt-4 min-w-0 pr-14 md:pr-16">
-            <h1 className="text-2xl font-semibold">{community.name}</h1>
+          <div className="mt-3 min-w-0 pr-14 md:mt-4 md:pr-16">
+            <h1 className="text-xl font-semibold md:text-2xl">{community.name}</h1>
             {community.location ? (
-              <p className="mt-0.5 text-sm text-muted-foreground">{community.location}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground md:text-sm">{community.location}</p>
             ) : null}
           </div>
-          <p className="mt-4 w-full text-justify text-sm leading-relaxed text-muted-foreground [text-align-last:left]">
+          <p className="mt-3 w-full text-justify text-[13px] leading-relaxed text-muted-foreground [text-align-last:left] md:mt-4 md:text-sm">
             {about}
           </p>
           <div className="mt-4">
@@ -159,42 +163,55 @@ export function CommunityDetailContent({
               canOpenDirectory={isMember}
             />
           </div>
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 md:gap-3">
             {isMember || canManage ? (
               <Link
                 href={`/communities/${community.id}/donate`}
-                className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full")}
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-9 w-full text-xs md:h-11 md:text-sm",
+                )}
               >
                 Make a donation
               </Link>
             ) : (
-              <Button variant="outline" className="h-11 w-full" disabled>
+              <Button
+                variant="outline"
+                className="h-9 w-full text-xs md:h-11 md:text-sm"
+                disabled
+              >
                 Make a donation
               </Button>
             )}
             {canManage ? (
               <Link
                 href={`/communities/${community.slug}/admin`}
-                className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full")}
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-9 w-full text-xs md:h-11 md:text-sm",
+                )}
               >
                 Admin dashboard
               </Link>
             ) : (
-              <div className="flex h-11 items-center">
+              <div className="flex h-9 items-center md:h-11">
                 <CommunityMembershipActions community={community} canManage={false} />
               </div>
             )}
           </div>
+
         </div>
       </div>
 
-      <section className="mt-8">
-        <div className="mb-4 flex items-center justify-between">
+      <section className="mt-6 md:mt-8">
+        <div className="mb-3 flex items-center justify-between md:mb-4">
           <div>
-            <h2 className="text-lg font-semibold">Channels</h2>
-            <p className="text-sm text-muted-foreground">Discuss topics with your community</p>
+            <h2 className="text-base font-semibold md:text-lg">Channels</h2>
+            <p className="text-xs text-muted-foreground md:text-sm">
+              Discuss topics with your community
+            </p>
           </div>
-          {isMember ? (
+          {canManage ? (
             <Link
               href={`/create?tab=channel&community=${encodeURIComponent(community.id)}`}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary-light"
@@ -211,20 +228,32 @@ export function CommunityDetailContent({
         ) : channels.length === 0 ? (
           <CommunityEmptyState variant="channels" />
         ) : (
-          <div className="space-y-3">
+          <div
+            className={cn(
+              "flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 md:snap-none md:flex-col md:gap-3 md:overflow-visible",
+              hideScrollbarMobile,
+            )}
+          >
             {channels.map((channel) => (
-              <Card key={channel.id} className="p-5 shadow-card">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex gap-4">
+              <Card
+                key={channel.id}
+                className={cn(
+                  "shrink-0 snap-start shadow-card",
+                  "w-[min(88vw,260px)] min-w-[min(88vw,260px)] max-w-[280px] p-3",
+                  "md:w-full md:max-w-none md:min-w-0 md:p-5 md:shrink",
+                )}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between md:gap-4">
+                  <div className="flex gap-3 md:gap-4">
                     <div
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-xl font-bold text-white"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-lg font-bold text-white md:h-12 md:w-12 md:rounded-xl md:text-xl"
                       aria-hidden
                     >
                       #
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold">{channel.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm font-semibold md:text-base">{channel.name}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground md:mt-0 md:line-clamp-none md:text-sm">
                         {channel.description?.trim() ||
                           "Join the latest conversations in this channel"}
                       </p>
@@ -232,7 +261,10 @@ export function CommunityDetailContent({
                   </div>
                   <Link
                     href={`/communities/${community.slug}/channels/${channel.slug}`}
-                    className={cn(buttonVariants({ variant: "secondary" }), "shrink-0")}
+                    className={cn(
+                      buttonVariants({ variant: "secondary", size: "sm" }),
+                      "h-9 w-full shrink-0 text-xs md:h-10 md:w-auto md:text-sm",
+                    )}
                   >
                     Open channel
                   </Link>
@@ -243,11 +275,13 @@ export function CommunityDetailContent({
         )}
       </section>
 
-      <section className="mt-8">
-        <div className="mb-4 flex items-center justify-between">
+      <section className="mt-6 md:mt-8">
+        <div className="mb-3 flex items-center justify-between md:mb-4">
           <div>
-            <h2 className="text-lg font-semibold">Events</h2>
-            <p className="text-sm text-muted-foreground">Gather with people from this community</p>
+            <h2 className="text-base font-semibold md:text-lg">Events</h2>
+            <p className="text-xs text-muted-foreground md:text-sm">
+              Gather with people from this community
+            </p>
           </div>
           {isMember ? (
             <Link
@@ -273,22 +307,20 @@ export function CommunityDetailContent({
               return (
                 <Card
                   key={event.id}
-                  className="flex min-w-[min(100%,300px)] max-w-[320px] shrink-0 flex-col gap-4 rounded-2xl border border-border p-5 shadow-card"
+                  className="flex min-w-[min(100%,300px)] max-w-[320px] shrink-0 flex-col gap-4 p-5 shadow-card"
                 >
                   <div className="flex gap-4">
                     <div className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-2xl border border-border bg-page-secondary">
-                      <span className="text-xl font-bold leading-none text-foreground">{day}</span>
+                      <span className="text-xl font-bold leading-none">{day}</span>
                       <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         {month}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         {time} · {formatLabel}
                       </p>
-                      <p className="mt-1 text-base font-semibold leading-snug text-foreground">
-                        {event.title}
-                      </p>
+                      <p className="mt-1 text-base font-semibold leading-snug">{event.title}</p>
                       {event.description ? (
                         <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                           {event.description}
@@ -299,10 +331,7 @@ export function CommunityDetailContent({
                   <Link
                     href={`/events/${event.id}`}
                     prefetch
-                    className={cn(
-                      buttonVariants({ variant: "outline" }),
-                      "h-11 w-full border-primary/30 text-primary hover:bg-primary-light/40",
-                    )}
+                    className={cn(buttonVariants({ variant: "outline" }), "w-full")}
                   >
                     RSVP
                   </Link>

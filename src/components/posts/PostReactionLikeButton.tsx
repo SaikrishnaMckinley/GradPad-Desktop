@@ -15,6 +15,8 @@ type Props = {
   reactionType: PostReactionType;
   onToggle: (category: PostReactionType) => void;
   className?: string;
+  /** Narrow width for mobile toolbars (grid edge alignment). */
+  compact?: boolean;
 };
 
 export function PostReactionLikeButton({
@@ -22,6 +24,7 @@ export function PostReactionLikeButton({
   reactionType,
   onToggle,
   className,
+  compact = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -68,7 +71,11 @@ export function PostReactionLikeButton({
   return (
     <div
       ref={wrapRef}
-      className={cn("relative flex flex-1", className)}
+      className={cn(
+        "relative flex",
+        compact ? "w-auto flex-none" : "flex-1",
+        className,
+      )}
       onMouseEnter={() => {
         clearCloseTimer();
         setOpen(true);
@@ -98,7 +105,11 @@ export function PostReactionLikeButton({
       <button
         type="button"
         className={cn(
-          "flex flex-1 items-center justify-center gap-2 rounded-md py-3 text-sm font-semibold transition-colors hover:bg-page-secondary",
+          "flex items-center gap-1.5 rounded-md py-2 text-xs font-semibold transition-colors hover:bg-page-secondary",
+          compact
+            ? "w-auto flex-none justify-start pl-1.5 pr-1"
+            : "flex-1 justify-center",
+          "md:gap-2 md:py-3 md:text-sm",
           likedByMe ? "text-primary" : "text-muted-foreground",
         )}
         onClick={onMainClick}
@@ -108,7 +119,7 @@ export function PostReactionLikeButton({
           alt=""
           width={18}
           height={18}
-          className="h-[18px] w-[18px]"
+          className="h-4 w-4 md:h-[18px] md:w-[18px]"
         />
         {label}
       </button>

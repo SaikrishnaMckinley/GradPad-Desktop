@@ -49,7 +49,7 @@ export function CommunityForm({
   return (
     <form
       action={formAction}
-      className="space-y-6"
+      className="space-y-4 md:space-y-6"
       onSubmit={() => {
         allowRedirectRef.current = true;
       }}
@@ -63,25 +63,26 @@ export function CommunityForm({
       />
 
       {state?.error ? (
-        <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-xs text-destructive md:rounded-xl md:px-4 md:py-3 md:text-sm">
           {state.error}
         </p>
       ) : null}
       {state?.success ? (
-        <p className="rounded-xl border border-primary-border bg-primary-light/60 px-4 py-3 text-sm text-primary">
+        <p className="rounded-lg border border-primary-border bg-primary-light/60 px-3 py-2.5 text-xs text-primary md:rounded-xl md:px-4 md:py-3 md:text-sm">
           {state.success}
         </p>
       ) : null}
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         <div>
-          <label className="mb-1.5 block text-sm font-medium" htmlFor="name">
+          <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="name">
             Community name
           </label>
           <Input
             id="name"
             name="name"
             value={name}
+            className="h-10 text-xs md:h-11 md:text-sm"
             onChange={(e) => {
               setName(e.target.value);
               if (!initial.name) {
@@ -92,60 +93,67 @@ export function CommunityForm({
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium" htmlFor="slug">
+          <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="slug">
             URL slug
           </label>
           <Input
             id="slug"
             name="slug"
             value={slug}
+            className="h-10 text-xs md:h-11 md:text-sm"
             onChange={(e) => setSlug(e.target.value)}
             required
           />
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-[11px] text-muted-foreground md:text-xs">
             {slugHint ?? `gradpad.com/communities/${slug || "your-slug"}`}
           </p>
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium" htmlFor="description">
+          <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="description">
             Description
           </label>
           <textarea
             id="description"
             name="description"
             defaultValue={initial.description ?? ""}
-            className="min-h-[120px] w-full rounded-xl border border-input-border bg-card px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="min-h-[96px] w-full rounded-lg border border-input-border bg-card px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 md:min-h-[120px] md:rounded-xl md:px-4 md:py-3 md:text-sm"
           />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium" htmlFor="institution">
+            <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="institution">
               Institution
             </label>
-            <Input id="institution" name="institution" defaultValue={initial.institution ?? ""} />
+            <Input
+              id="institution"
+              name="institution"
+              defaultValue={initial.institution ?? ""}
+              className="h-10 text-xs md:h-11 md:text-sm"
+            />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium" htmlFor="location">
+            <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="location">
               Location
             </label>
             <Input
               id="location"
               name="location"
               value={location}
+              className="h-10 text-xs md:h-11 md:text-sm"
               onChange={(e) => setLocation(e.target.value)}
             />
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium" htmlFor="visibility">
+            <label className="mb-1 block text-xs font-medium md:mb-1.5 md:text-sm" htmlFor="visibility">
               Visibility
             </label>
             <select
               id="visibility"
               name="visibility"
               defaultValue={initial.visibility}
-              className="h-11 w-full rounded-xl border border-input-border bg-card px-3 text-sm"
+              className="h-10 w-full rounded-lg border border-input-border bg-card px-2.5 text-xs md:h-11 md:rounded-xl md:px-3 md:text-sm"
             >
               <option value="public">Public</option>
               <option value="private">Private</option>
@@ -153,12 +161,12 @@ export function CommunityForm({
             </select>
           </div>
           <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-1.5 text-xs md:gap-2 md:text-sm">
               <input
                 type="checkbox"
                 name="joinApprovalRequired"
                 defaultChecked={initial.joinApprovalRequired}
-                className="h-4 w-4 rounded border-input-border"
+                className="h-3.5 w-3.5 rounded border-input-border md:h-4 md:w-4"
               />
               Require approval to join
             </label>
@@ -166,8 +174,12 @@ export function CommunityForm({
         </div>
       </div>
 
-      <div className="flex justify-end pt-2">
-        <Button type="submit" disabled={pending}>
+      <div className="flex justify-end pt-1 md:pt-2">
+        <Button
+          type="submit"
+          className="h-9 px-4 text-xs md:h-10 md:px-4 md:text-sm"
+          disabled={pending}
+        >
           {pending ? "Saving…" : submitLabel}
         </Button>
       </div>

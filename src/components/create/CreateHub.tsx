@@ -129,7 +129,7 @@ export function CreateHub({
       : null;
 
   const tabBar = (
-    <div className="flex w-full border-b border-border p-2">
+    <div className="flex w-full gap-0.5 border-b border-border px-1 py-1.5 md:gap-0 md:p-2">
       {TABS.map(({ id, label, icon: Icon, href }) => {
         const active = activeTab === id;
         return (
@@ -138,12 +138,13 @@ export function CreateHub({
             href={href}
             scroll={false}
             className={cn(
-              "flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium transition-colors",
+              "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 py-1.5 text-center text-[10px] font-medium leading-tight transition-colors",
+              "md:flex-row md:gap-2 md:rounded-xl md:px-1 md:py-3 md:text-sm md:leading-normal",
               active ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Icon className="h-4 w-4" />
-            {label}
+            <Icon className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4" />
+            <span className="max-w-full truncate">{label}</span>
           </Link>
         );
       })}
@@ -154,10 +155,10 @@ export function CreateHub({
     return (
       <PageContainer withRightRail rightRail={<RightRail tab="event" />}>
         <Card className="w-full overflow-hidden">{tabBar}</Card>
-        <div className="mt-4 w-full">
-          <div className="mb-4 w-full">
-            <h1 className="text-xl font-semibold tracking-tight">Create event</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+        <div className="mt-3 w-full md:mt-4">
+          <div className="mb-3 w-full md:mb-4">
+            <h1 className="text-lg font-semibold tracking-tight md:text-xl">Create event</h1>
+            <p className="mt-1 text-xs text-muted-foreground md:text-sm">
               Matches gradpad-web: schedule, location search, tickets, hosts, donations, and payout.
             </p>
           </div>
@@ -191,10 +192,10 @@ export function CreateHub({
         {tabBar}
 
         {activeTab === "channel" ? (
-          <div className="p-6 md:p-8">
-            <div className="mb-6">
-              <h1 className="text-xl font-semibold">Create a channel</h1>
-              <p className="text-sm text-muted-foreground">
+          <div className="p-3 md:p-6 lg:p-8">
+            <div className="mb-3 md:mb-6">
+              <h1 className="text-base font-semibold md:text-xl">Create a channel</h1>
+              <p className="text-[11px] leading-relaxed text-muted-foreground md:text-sm md:leading-normal">
                 Add a discussion space inside a community you manage or belong to.
               </p>
             </div>
@@ -212,10 +213,10 @@ export function CreateHub({
             )}
           </div>
         ) : activeTab === "community" ? (
-          <div className="p-6 md:p-8">
-            <div className="mb-6">
-              <h1 className="text-xl font-semibold">Create a community</h1>
-              <p className="text-sm text-muted-foreground">
+          <div className="p-3 md:p-6 lg:p-8">
+            <div className="mb-3 md:mb-6">
+              <h1 className="text-base font-semibold md:text-xl">Create a community</h1>
+              <p className="text-[11px] leading-relaxed text-muted-foreground md:text-sm md:leading-normal">
                 Add cover, logo, and details — your hub will match what members see on the
                 community page.
               </p>
@@ -240,12 +241,19 @@ export function CreateHub({
             />
           </div>
         ) : (
-          <div className="p-6 md:p-8">
-            <div className="mb-6 flex items-center gap-4">
-              <Avatar alt={userDisplayName} fallback={userDisplayName} size="lg" />
-              <div>
-                <h1 className="text-xl font-semibold">Create a post</h1>
-                <p className="text-sm text-muted-foreground">Share an update with your community</p>
+          <div className="p-4 md:p-6 lg:p-8">
+            <div className="mb-4 flex items-center gap-3 md:mb-6 md:gap-4">
+              <Avatar
+                alt={userDisplayName}
+                fallback={userDisplayName}
+                size="lg"
+                className="max-md:!h-10 max-md:!w-10 max-md:!text-sm"
+              />
+              <div className="min-w-0">
+                <h1 className="text-lg font-semibold md:text-xl">Create a post</h1>
+                <p className="text-xs text-muted-foreground md:text-sm">
+                  Share an update with your community
+                </p>
               </div>
             </div>
             {membershipGateMessage ? (

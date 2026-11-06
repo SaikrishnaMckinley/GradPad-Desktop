@@ -60,10 +60,10 @@ export function PostMediaLightbox({
       onClick={onClose}
     >
       <div
-        className="flex h-[min(720px,92vh)] w-full max-w-6xl overflow-hidden rounded-lg bg-card shadow-2xl"
+        className="flex max-h-[92dvh] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-card shadow-2xl md:h-[min(720px,92vh)] md:max-h-none md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative flex min-w-0 flex-1 items-center justify-center bg-black">
+        <div className="relative flex h-[min(42vh,420px)] min-h-[200px] w-full shrink-0 items-center justify-center bg-black md:h-auto md:min-h-0 md:flex-1 md:shrink">
           {isVideo ? (
             <video src={current.url} controls className="max-h-full max-w-full object-contain" />
           ) : (
@@ -101,7 +101,7 @@ export function PostMediaLightbox({
           ) : null}
         </div>
 
-        <div className="flex w-full max-w-md flex-col border-l border-border bg-card">
+        <div className="flex min-h-0 w-full max-w-md flex-1 flex-col overflow-hidden border-t border-border bg-card md:max-h-none md:flex-none md:border-l md:border-t-0">
           <div className="flex justify-end border-b border-border p-2">
             <button
               type="button"
@@ -112,7 +112,7 @@ export function PostMediaLightbox({
               <X className="h-5 w-5" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto">{sidebar}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{sidebar}</div>
         </div>
       </div>
     </div>
