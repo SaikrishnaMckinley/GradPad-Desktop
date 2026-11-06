@@ -55,6 +55,7 @@ export function HomeFeed({ feed }: Props) {
                   channelName={post.channelName}
                   authorName={post.authorName}
                   authorAvatarUrl={post.authorAvatarUrl}
+                  authorUserId={post.authorUserId}
                   createdAt={post.createdAt}
                   title={post.title}
                   content={post.content}

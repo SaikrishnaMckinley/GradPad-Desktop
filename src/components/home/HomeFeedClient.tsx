@@ -18,13 +18,17 @@ import { cn } from "@/lib/utils/cn";
 
 type Props = {
   initial: HomeFeedPayload;
+  activeCommunityId: string | null;
+  onActiveCommunityChange: (communityId: string) => void;
 };
 
-export function HomeFeedClient({ initial }: Props) {
+export function HomeFeedClient({
+  initial,
+  activeCommunityId,
+  onActiveCommunityChange,
+}: Props) {
   const { memberships } = initial;
   const initialId = initial.activeCommunity?.id ?? memberships[0]?.id ?? null;
-
-  const [activeCommunityId, setActiveCommunityId] = useState(initialId);
   const [postsByCommunity, setPostsByCommunity] = useState<Record<string, FeedPostRow[]>>(() => {
     const seed: Record<string, FeedPostRow[]> = {};
     if (initial.activeCommunity && initial.posts) {
@@ -98,7 +102,7 @@ export function HomeFeedClient({ initial }: Props) {
   const selectCommunity = useCallback(
     (communityId: string) => {
       if (communityId === activeCommunityId) return;
-      setActiveCommunityId(communityId);
+      onActiveCommunityChange(communityId);
       const name = memberships.find((m) => m.id === communityId)?.name ?? "";
       const url = `/home?community=${encodeURIComponent(communityId)}`;
       window.history.replaceState(null, "", url);
@@ -115,7 +119,7 @@ export function HomeFeedClient({ initial }: Props) {
         void fetchPosts(communityId, name);
       });
     },
-    [activeCommunityId, fetchPosts, memberships, postsByCommunity],
+    [activeCommunityId, fetchPosts, memberships, onActiveCommunityChange, postsByCommunity],
   );
 
   useEffect(() => {
@@ -148,7 +152,7 @@ export function HomeFeedClient({ initial }: Props) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-6">
       <div className="flex flex-wrap gap-2">
         {memberships.map((community) => {
           const active = community.id === activeCommunityId;
@@ -204,6 +208,7 @@ export function HomeFeedClient({ initial }: Props) {
                   channelName={post.channelName}
                   authorName={post.authorName}
                   authorAvatarUrl={post.authorAvatarUrl}
+                  authorUserId={post.authorUserId}
                   createdAt={post.createdAt}
                   title={post.title}
                   content={post.content}
