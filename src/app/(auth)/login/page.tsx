@@ -18,7 +18,7 @@ async function LoginContent({ searchParams }: Props) {
       description={
         params.communityId
           ? "Sign in to send your join request for the community from your invite link."
-          : "Sign in with your Grad Pad staging account."
+          : "Use your Grad Pad email and password to continue."
       }
     >
       {params.error === "auth_callback" && (

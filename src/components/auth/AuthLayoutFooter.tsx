@@ -13,11 +13,6 @@ export async function AuthLayoutFooter() {
     );
   }
 
-  return (
-    <footer className="px-6 py-4 text-center text-xs text-muted-foreground">
-      <Link href="/login" className="text-primary hover:underline">
-        Back to sign in
-      </Link>
-    </footer>
-  );
+  /* No footer link on auth pages — sign-in/up/forgot flows link to each other in-card. */
+  return null;
 }
