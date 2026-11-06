@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CircleHelp, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { CommunityMark } from "@/components/layout/CommunityMark";
 import { Avatar } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -155,13 +155,6 @@ export function CommunityDetailSidebar({
         </CardContent>
       </Card>
 
-      <button
-        type="button"
-        className="fixed bottom-6 right-6 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card hover:text-foreground xl:absolute xl:bottom-0 xl:right-0"
-        aria-label="Help"
-      >
-        <CircleHelp className="h-5 w-5" />
-      </button>
     </div>
   );
 }

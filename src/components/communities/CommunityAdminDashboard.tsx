@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { CommunityAdminBankTab } from "@/components/communities/CommunityAdminBankTab";
 import { DonationAdminFunds } from "@/components/donations/DonationAdminFunds";
 import { DonationSettingsToggle } from "@/components/donations/DonationSettingsToggle";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatarLink } from "@/components/profile/ProfileAvatarLink";
+import { ProfileNameLink } from "@/components/profile/ProfileNameLink";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -255,14 +256,17 @@ function AdminRequestsTab({
               <li key={row.id}>
                 <Card className="flex flex-wrap items-center justify-between gap-3 border-border/80 bg-white p-4 shadow-sm">
                   <div className="flex items-center gap-3">
-                    <Avatar
+                    <ProfileAvatarLink
+                      userId={row.userId}
                       src={row.avatarUrl}
                       alt={row.fullName}
                       fallback={row.fullName}
                       size="md"
                     />
                     <div>
-                      <p className="font-medium">{row.fullName}</p>
+                      <ProfileNameLink userId={row.userId} className="font-medium">
+                        {row.fullName}
+                      </ProfileNameLink>
                       <p className="text-xs text-muted-foreground">
                         {requested ? `Requested ${requested}` : "Membership request"}
                         {row.username ? (
@@ -346,14 +350,17 @@ function AdminMembersTab({
               <li key={row.id}>
                 <Card className="flex flex-wrap items-center justify-between gap-3 border-border/80 bg-white p-4 shadow-sm">
                   <div className="flex items-center gap-3">
-                    <Avatar
+                    <ProfileAvatarLink
+                      userId={row.userId}
                       src={row.avatarUrl}
                       alt={row.fullName}
                       fallback={row.fullName}
                       size="md"
                     />
                     <div>
-                      <p className="font-medium">{row.fullName}</p>
+                      <ProfileNameLink userId={row.userId} className="font-medium">
+                        {row.fullName}
+                      </ProfileNameLink>
                       <span
                         className={cn(
                           "mt-1 inline-flex rounded-md px-2 py-0.5 text-xs font-semibold",

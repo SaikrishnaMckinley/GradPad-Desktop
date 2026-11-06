@@ -90,6 +90,7 @@ export function CommunityChannelContent({ community, channel, posts, isMember }:
                 channelName={channel.name}
                 authorName={post.authorName}
                 authorAvatarUrl={post.authorAvatarUrl}
+                authorUserId={post.authorUserId}
                 createdAt={post.createdAt}
                 title={post.title}
                 content={post.content}

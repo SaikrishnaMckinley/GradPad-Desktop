@@ -24,12 +24,14 @@ export function LiveCommunityHub({ initialHub }: Props) {
   }, [initialHub]);
 
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col">
       <Suspense fallback={null}>
         <CommunityJoinStatusToast />
       </Suspense>
-    <PageContainer
+      <PageContainer
       withRightRail
+      unifiedScroll
+      className="min-h-0 flex-1 lg:max-h-[calc(100dvh-3.875rem)] lg:overflow-hidden"
       rightRail={
         <CommunityDetailSidebar
           user={initialHub.shellUser}
@@ -49,7 +51,7 @@ export function LiveCommunityHub({ initialHub }: Props) {
         canManage={initialHub.canManage}
         isMember={initialHub.isMember}
       />
-    </PageContainer>
-    </>
+      </PageContainer>
+    </div>
   );
 }

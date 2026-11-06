@@ -94,7 +94,7 @@ export function CommunityDetailDemo({ slug = DEV_ACTIVE_COMMUNITY.slug }: Commun
               {DEMO_LOCATIONS[community.slug] ?? "United States"}
             </p>
           </div>
-          <p className="mt-4 w-full text-justify text-sm leading-relaxed text-muted-foreground [text-align-last:justify]">
+          <p className="mt-4 w-full text-justify text-sm leading-relaxed text-muted-foreground [text-align-last:left]">
             {about}
           </p>
           <div className="mt-4 flex items-center">

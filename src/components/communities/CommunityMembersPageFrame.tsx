@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils/cn";
 import { CommunityDetailSidebar } from "@/components/communities/CommunityDetailSidebar";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { CommunityHubPayload } from "@/lib/communities/hub-cache";
@@ -16,8 +17,15 @@ export function CommunityMembersPageFrame({ slug, hub: hubFromServer, children }
   const hub = hubFromServer ?? resolveHubFallback(slug);
 
   return (
+    <div className={cn(hub && "flex min-h-0 flex-1 flex-col")}>
     <PageContainer
       withRightRail={Boolean(hub)}
+      unifiedScroll={Boolean(hub)}
+      className={
+        hub
+          ? "min-h-0 flex-1 lg:max-h-[calc(100dvh-3.875rem)] lg:overflow-hidden"
+          : undefined
+      }
       rightRail={
         hub ? (
           <CommunityDetailSidebar
@@ -32,5 +40,6 @@ export function CommunityMembersPageFrame({ slug, hub: hubFromServer, children }
     >
       <div className="mx-auto w-full max-w-3xl">{children}</div>
     </PageContainer>
+    </div>
   );
 }

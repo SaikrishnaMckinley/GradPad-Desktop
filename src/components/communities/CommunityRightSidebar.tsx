@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatarLink } from "@/components/profile/ProfileAvatarLink";
+import { ProfileNameLink } from "@/components/profile/ProfileNameLink";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -105,14 +106,20 @@ export function CommunityRightSidebar({
           <CardContent className="space-y-4 pt-0">
             {membersPreview.map((member) => (
               <div key={member.id} className="flex items-center gap-3">
-                <Avatar
+                <ProfileAvatarLink
+                  userId={member.userId}
                   src={member.avatarUrl}
                   alt={member.fullName}
                   fallback={member.fullName}
                   size="md"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{member.fullName}</p>
+                  <ProfileNameLink
+                    userId={member.userId}
+                    className="block truncate text-sm font-semibold"
+                  >
+                    {member.fullName}
+                  </ProfileNameLink>
                   <p className="truncate text-xs capitalize text-muted-foreground">
                     {member.role}
                   </p>

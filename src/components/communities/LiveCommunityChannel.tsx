@@ -32,8 +32,11 @@ export function LiveCommunityChannel({ initial }: Props) {
   }, [initial]);
 
   return (
+    <div className="flex min-h-0 flex-1 flex-col">
     <PageContainer
       withRightRail
+      unifiedScroll
+      className="min-h-0 flex-1 lg:max-h-[calc(100dvh-3.875rem)] lg:overflow-hidden"
       rightRail={
         <CommunityDetailSidebar
           user={initial.shellUser}
@@ -51,5 +54,6 @@ export function LiveCommunityChannel({ initial }: Props) {
         isMember={initial.isMember}
       />
     </PageContainer>
+    </div>
   );
 }

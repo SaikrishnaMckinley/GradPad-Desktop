@@ -46,6 +46,7 @@ export type CommunityPostRow = {
   content: string;
   authorName: string;
   authorAvatarUrl?: string | null;
+  authorUserId?: string | null;
   createdAt: string;
   canEdit?: boolean;
   channelName?: string | null;
@@ -147,7 +148,7 @@ export function CommunityDetailContent({
               <p className="mt-0.5 text-sm text-muted-foreground">{community.location}</p>
             ) : null}
           </div>
-          <p className="mt-4 w-full text-justify text-sm leading-relaxed text-muted-foreground [text-align-last:justify]">
+          <p className="mt-4 w-full text-justify text-sm leading-relaxed text-muted-foreground [text-align-last:left]">
             {about}
           </p>
           <div className="mt-4">
@@ -345,6 +346,7 @@ export function CommunityDetailContent({
                 channelName={post.channelName ?? null}
                 authorName={post.authorName}
                 authorAvatarUrl={post.authorAvatarUrl}
+                authorUserId={post.authorUserId}
                 createdAt={post.createdAt}
                 title={post.title}
                 content={post.content}

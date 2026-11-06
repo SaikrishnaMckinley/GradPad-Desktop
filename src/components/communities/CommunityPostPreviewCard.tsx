@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { Globe, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatarLink } from "@/components/profile/ProfileAvatarLink";
+import { ProfileNameLink } from "@/components/profile/ProfileNameLink";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,7 @@ type Props = {
   channelName?: string | null;
   authorName: string;
   authorAvatarUrl?: string | null;
+  authorUserId?: string | null;
   createdAt: string;
   title: string | null;
   content: string;
@@ -81,6 +83,7 @@ export function CommunityPostPreviewCard({
   channelName,
   authorName,
   authorAvatarUrl,
+  authorUserId = null,
   createdAt,
   title,
   content,
@@ -290,7 +293,8 @@ export function CommunityPostPreviewCard({
           ) : null}
 
           <div className="flex gap-3">
-            <Avatar
+            <ProfileAvatarLink
+              userId={authorUserId}
               alt={authorName}
               fallback={authorName}
               src={authorAvatarUrl}
@@ -298,9 +302,12 @@ export function CommunityPostPreviewCard({
               className="h-12 w-12 shrink-0"
             />
             <div className="min-w-0 flex-1 pt-0.5">
-              <p className="truncate text-sm font-semibold leading-snug text-foreground">
+              <ProfileNameLink
+                userId={authorUserId}
+                className="block truncate text-sm font-semibold leading-snug text-foreground"
+              >
                 {authorName}
-              </p>
+              </ProfileNameLink>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                 {postedAt ? <span>{postedAt}</span> : null}
                 {postedAt ? <span>·</span> : null}
@@ -397,9 +404,17 @@ export function CommunityPostPreviewCard({
           <div className="flex h-full flex-col px-4 pb-4">
             <PostCardContextStrip communityName={communityName} channelName={channelName} />
             <div className="flex gap-3 border-b border-border py-4">
-              <Avatar alt={authorName} fallback={authorName} src={authorAvatarUrl} size="md" />
+              <ProfileAvatarLink
+                userId={authorUserId}
+                alt={authorName}
+                fallback={authorName}
+                src={authorAvatarUrl}
+                size="md"
+              />
               <div>
-                <p className="text-sm font-semibold">{authorName}</p>
+                <ProfileNameLink userId={authorUserId} className="text-sm font-semibold">
+                  {authorName}
+                </ProfileNameLink>
                 {postedAt ? (
                   <p className="text-xs text-muted-foreground">{postedAt}</p>
                 ) : null}
