@@ -7,7 +7,16 @@ function mediaOrigin(): string {
 
 export function resolveEventImageUrl(source: Record<string, unknown> | null | undefined): string | null {
   if (!source) return null;
-  const candidates = [source.image, source.event_image, source.image_url, source.banner, source.cover];
+  const candidates = [
+    source.image_url,
+    source.image,
+    source.event_image,
+    source.cover_image,
+    source.banner,
+    source.cover,
+    source.thumbnail,
+    source.photo,
+  ];
   for (const raw of candidates) {
     if (typeof raw !== "string") continue;
     const trimmed = raw.trim();

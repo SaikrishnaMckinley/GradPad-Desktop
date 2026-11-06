@@ -1,12 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { GradPadBlueHero } from "@/components/ui/GradPadBlueHero";
 import { Input } from "@/components/ui/input";
-import { startEventCheckout } from "@/lib/events/actions";
+import { EventRegisterDonationSection } from "@/components/events/EventRegisterDonationSection";
+import { quoteEventRegistrationPrice, startEventCheckout } from "@/lib/events/actions";
+import {
+  type DonationSelection,
+  type EventRegistrationDonationContext,
+  validateDonationAmount,
+} from "@/lib/events/event-donation";
+import { calculateDonationCheckout } from "@/lib/donations/stripe-fees";
+import {
+  EVENT_DONATION_PROCESSING_FEE_LABEL,
+  EVENT_TRANSACTION_FEE_LABEL,
+  buildLocalEventRegistrationPricing,
+  getCheckoutDisplayPricing,
+  type NormalizedEventPricing,
+} from "@/lib/events/event-pricing";
 import { formatEventFeedLabels } from "@/lib/events/format-event-datetime";
 import type { EventDetailViewModel } from "@/lib/events/map-event-detail";
 import { cn } from "@/lib/utils/cn";
@@ -15,9 +30,24 @@ type Props = {
   event: EventDetailViewModel;
   viewerName: string;
   viewerEmail: string;
+  donationContext: EventRegistrationDonationContext;
 };
 
-export function EventRegisterClient({ event, viewerName, viewerEmail }: Props) {
+const emptyDonation = (fundId: string | null): DonationSelection => ({
+  amount: 0,
+  isCustom: false,
+  coverFees: false,
+  isAnonymous: false,
+  message: "",
+  fundId,
+});
+
+export function EventRegisterClient({
+  event,
+  viewerName,
+  viewerEmail,
+  donationContext,
+}: Props) {
   const [state, formAction, pending] = useActionState(
     startEventCheckout.bind(null, event.id),
     null,
@@ -29,56 +59,157 @@ export function EventRegisterClient({ event, viewerName, viewerEmail }: Props) {
   const [plusOneName, setPlusOneName] = useState("");
   const [plusOneEmail, setPlusOneEmail] = useState("");
   const [coupon, setCoupon] = useState("");
+  const [selectedFundId, setSelectedFundId] = useState(
+    donationContext.defaultFundId,
+  );
+  const [donation, setDonation] = useState<DonationSelection>(() =>
+    emptyDonation(donationContext.defaultFundId),
+  );
+  const [serverPricing, setServerPricing] = useState<NormalizedEventPricing | null>(null);
+  const quoteRequestId = useRef(0);
 
   const selected = tickets.find((t) => t.id === ticketId) ?? tickets[0];
-  const subtotal = selected ? selected.cost : 0;
-  const fee = useMemo(() => Math.round(subtotal * 0.029 * 100 + 30) / 100, [subtotal]);
-  const total = subtotal + fee;
-
   const { timeLabel, dayLabel } = formatEventFeedLabels(event.startAt);
+
+  const donationError =
+    donation.amount > 0
+      ? validateDonationAmount(donation.amount, donationContext.settings)
+      : null;
 
   useEffect(() => {
     if (state?.error) toast.error(state.error);
   }, [state]);
 
+  const donationCoverAddon = useMemo(() => {
+    if (donation.amount <= 0 || !donation.coverFees) return 0;
+    return calculateDonationCheckout(donation.amount, true).processingFeeAddon;
+  }, [donation.amount, donation.coverFees]);
+
+  const localPricing = useMemo((): NormalizedEventPricing | null => {
+    if (!selected || selected.isFree) return null;
+    return buildLocalEventRegistrationPricing({
+      ticketUnitCost: selected.cost,
+      hasPlusOne: plusOne,
+      communityId: event.communityId ?? "",
+      donationAmount: donation.amount > 0 ? donation.amount : 0,
+      donationCoverFeeAddon: donationCoverAddon,
+    });
+  }, [selected, plusOne, event.communityId, donation.amount, donationCoverAddon]);
+
+  useEffect(() => {
+    setServerPricing(null);
+  }, [ticketId, plusOne, coupon, donation.amount, donation.coverFees, donation.fundId]);
+
+  useEffect(() => {
+    if (!ticketId || !selected || selected.isFree) {
+      setServerPricing(null);
+      return;
+    }
+
+    const requestId = ++quoteRequestId.current;
+    const delay = donation.isCustom ? 280 : 0;
+
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const result = await quoteEventRegistrationPrice(event.id, {
+          ticketId,
+          hasPlusOne: plusOne,
+          couponCode: coupon || undefined,
+          donationAmount: donation.amount > 0 ? donation.amount : undefined,
+          donationCoverFees: donation.coverFees,
+          donationFundId: donation.fundId ?? selectedFundId,
+        });
+        if (requestId !== quoteRequestId.current) return;
+        if ("error" in result) {
+          if (coupon.trim()) toast.error(result.error);
+        } else if (result.pricing) {
+          setServerPricing(result.pricing);
+        }
+      })();
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    event.id,
+    ticketId,
+    plusOne,
+    coupon,
+    donation.amount,
+    donation.coverFees,
+    donation.fundId,
+    donation.isCustom,
+    selected,
+    selectedFundId,
+  ]);
+
+  const display = useMemo(
+    () => getCheckoutDisplayPricing(serverPricing ?? localPricing),
+    [serverPricing, localPricing],
+  );
+
+  const ticketLine = display?.ticketLine ?? 0;
+  const eventFee = display?.platformFee ?? 0;
+  const donationLine = display?.donation ?? 0;
+  const donationFeeLine = display?.donationFeeCoverage ?? 0;
+  const total = display?.total ?? 0;
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (plusOne && !plusOneName.trim()) {
+      e.preventDefault();
+      toast.error("Plus-one guest full name is required.");
+      return;
+    }
+    if (plusOne && !plusOneEmail.trim()) {
+      e.preventDefault();
+      toast.error("Plus-one guest email is required.");
+      return;
+    }
+    if (donationError) {
+      e.preventDefault();
+      toast.error(donationError);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl bg-gradient-to-r from-[#1e3a8a] to-primary px-6 py-8 text-white">
+      <GradPadBlueHero>
         <Link
           href={`/events/${event.id}`}
-          className="text-sm text-white/80 hover:text-white"
+          className="text-sm font-medium text-white/85 hover:text-white"
         >
           ← Back to event
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold">Event registration</h1>
-        <p className="mt-1 text-sm text-white/85">Choose your ticket and confirm your details.</p>
-      </div>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-[1.65rem]">
+          Event registration
+        </h1>
+        <p className="mt-1 text-sm text-white/90">Choose your ticket and confirm your details.</p>
+      </GradPadBlueHero>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <Card className="p-6 shadow-card">
+        <Card className="overflow-hidden rounded-2xl border-primary-border/60 p-6 shadow-card">
           <h2 className="text-lg font-semibold">{event.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {dayLabel}, {timeLabel} · {event.locationLabel ?? "TBD"}
           </p>
 
-          <div className="mt-6 rounded-xl bg-page-secondary/80 p-4">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">Your info</p>
+          <div className="mt-6 rounded-xl border border-primary-border/50 bg-primary-light/35 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Your info</p>
             <p className="mt-2 font-medium">{viewerName}</p>
             <p className="text-sm text-muted-foreground">{viewerEmail}</p>
           </div>
 
           <div className="mt-6 space-y-3">
-            <p className="text-sm font-semibold">Tickets</p>
+            <p className="text-sm font-semibold text-foreground">Select a ticket</p>
             {tickets.map((ticket) => (
               <button
                 key={ticket.id}
                 type="button"
                 onClick={() => setTicketId(ticket.id)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-xl border p-4 text-left",
+                  "flex w-full items-center justify-between rounded-xl border bg-card p-4 text-left shadow-sm transition-all",
                   ticketId === ticket.id
-                    ? "border-primary bg-primary-light/40"
-                    : "border-border",
+                    ? "border-primary ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/40",
                 )}
               >
                 <div>
@@ -92,11 +223,12 @@ export function EventRegisterClient({ event, viewerName, viewerEmail }: Props) {
             ))}
           </div>
 
-          <div className="mt-6 rounded-xl border border-border p-4">
-            <label className="flex items-center justify-between gap-3 text-sm font-medium">
+          <div className="mt-6 rounded-xl border border-primary-border/40 bg-primary-light/15 p-4">
+            <label className="flex items-center justify-between gap-3 text-sm font-medium text-foreground">
               Bring a plus-one
               <input
                 type="checkbox"
+                className="accent-primary"
                 checked={plusOne}
                 onChange={(e) => setPlusOne(e.target.checked)}
               />
@@ -104,59 +236,112 @@ export function EventRegisterClient({ event, viewerName, viewerEmail }: Props) {
             {plusOne ? (
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <Input
-                  placeholder="Guest name"
+                  placeholder="Guest full name"
+                  className="bg-white"
+                  autoComplete="name"
                   value={plusOneName}
                   onChange={(e) => setPlusOneName(e.target.value)}
+                  required={plusOne}
                 />
                 <Input
                   placeholder="Guest email"
                   type="email"
+                  className="bg-white"
+                  autoComplete="email"
                   value={plusOneEmail}
                   onChange={(e) => setPlusOneEmail(e.target.value)}
+                  required={plusOne}
                 />
               </div>
             ) : null}
           </div>
+
+          {donationContext.available ? (
+            <EventRegisterDonationSection
+              settings={donationContext.settings}
+              funds={donationContext.funds}
+              selectedFundId={selectedFundId}
+              onFundChange={setSelectedFundId}
+              value={donation}
+              onChange={setDonation}
+              disabled={pending}
+            />
+          ) : null}
         </Card>
 
-        <Card className="h-fit p-6 shadow-card">
-          <h3 className="text-sm font-semibold uppercase text-muted-foreground">Order summary</h3>
-          <div className="mt-4 space-y-2 text-sm">
+        <Card className="h-fit overflow-hidden rounded-2xl border-primary-border/60 p-0 shadow-card">
+          <div className="border-b border-primary-border/40 bg-primary-light/30 px-6 py-4">
+            <h3 className="text-sm font-semibold text-primary">Order summary</h3>
+          </div>
+          <div className="space-y-2 px-6 pt-4 text-sm">
             <div className="flex justify-between">
               <span>{selected?.name ?? "Ticket"}</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>${ticketLine.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-muted-foreground">
-              <span>Event transaction fee</span>
-              <span>${fee.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between border-t border-border pt-3 text-base font-semibold">
+            {display && display.discount > 0 ? (
+              <div className="flex justify-between text-primary">
+                <span>Discount</span>
+                <span>-${display.discount.toFixed(2)}</span>
+              </div>
+            ) : null}
+            {eventFee > 0 && selected && !selected.isFree ? (
+              <div className="flex justify-between text-muted-foreground">
+                <span>{EVENT_TRANSACTION_FEE_LABEL}</span>
+                <span>${eventFee.toFixed(2)}</span>
+              </div>
+            ) : null}
+            {donationLine > 0 ? (
+              <div className="flex justify-between">
+                <span>Donation</span>
+                <span>${donationLine.toFixed(2)}</span>
+              </div>
+            ) : null}
+            {donationFeeLine > 0 ? (
+              <div className="flex justify-between text-muted-foreground">
+                <span>{EVENT_DONATION_PROCESSING_FEE_LABEL}</span>
+                <span>${donationFeeLine.toFixed(2)}</span>
+              </div>
+            ) : null}
+            <div className="flex justify-between border-t border-primary-border/50 pt-3 text-base font-semibold">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span className="text-primary">${total.toFixed(2)}</span>
             </div>
           </div>
 
-          <Input
-            className="mt-4"
-            placeholder="Coupon code (optional)"
-            value={coupon}
-            onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-          />
-
-          <form action={formAction} className="mt-5">
+          <form action={formAction} className="space-y-4 px-6 pb-6 pt-5" onSubmit={handleSubmit}>
+            <Input
+              placeholder="Promo code"
+              className="border-primary-border/60 focus-visible:ring-primary/40"
+              value={coupon}
+              onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+            />
             <input type="hidden" name="ticketId" value={ticketId} />
             <input type="hidden" name="hasPlusOne" value={String(plusOne)} />
             <input type="hidden" name="plusOneName" value={plusOneName} />
             <input type="hidden" name="plusOneEmail" value={plusOneEmail} />
             <input type="hidden" name="couponCode" value={coupon} />
-            <Button type="submit" className="w-full" disabled={pending || !ticketId}>
+            <input type="hidden" name="donationAmount" value={String(donation.amount)} />
+            <input type="hidden" name="donationCoverFees" value={String(donation.coverFees)} />
+            <input type="hidden" name="donationIsCustom" value={String(donation.isCustom)} />
+            <input type="hidden" name="donationIsAnonymous" value={String(donation.isAnonymous)} />
+            <input type="hidden" name="donationMessage" value={donation.message} />
+            <input
+              type="hidden"
+              name="donationFundId"
+              value={donation.fundId ?? selectedFundId ?? ""}
+            />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={pending || !ticketId || Boolean(donationError)}
+            >
               {pending ? "Redirecting to Stripe…" : "Pay with Stripe"}
             </Button>
           </form>
 
-          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            Secure checkout on staging uses Stripe test mode. You will be redirected to Stripe to
-            complete payment.
+          <p className="px-6 pb-6 text-xs leading-relaxed text-muted-foreground">
+            {EVENT_TRANSACTION_FEE_LABEL} includes Stripe and Grad Pad processing fees. Secure
+            checkout on staging uses Stripe test mode.
           </p>
         </Card>
       </div>

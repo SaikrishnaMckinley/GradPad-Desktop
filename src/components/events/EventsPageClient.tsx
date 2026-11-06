@@ -14,6 +14,7 @@ import { EventFeedList } from "@/components/events/EventFeedList";
 import { EventsViewToggle } from "@/components/events/EventsViewToggle";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
+import { buildEventsRailPreview } from "@/lib/events/events-rail-preview";
 import type { EventListItem } from "@/types/events";
 
 type Props = {
@@ -31,12 +32,7 @@ export function EventsPageClient({ stagingApi, initialEvents }: Props) {
   }, [initialEvents, stagingApi]);
 
   const railPreview = useMemo(
-    () =>
-      initialEvents.slice(0, 3).map((e) => ({
-        id: e.id,
-        title: e.title,
-        startAt: e.startAt,
-      })),
+    () => buildEventsRailPreview(initialEvents, 3),
     [initialEvents],
   );
 

@@ -1,5 +1,7 @@
 import type { EventDetailViewModel } from "@/lib/events/map-event-detail";
-import type { EventListItem, EventRailItem } from "@/types/events";
+import { buildEventsRailPreview } from "@/lib/events/events-rail-preview";
+import type { EventsRailPreviewModel } from "@/lib/events/events-rail-preview";
+import type { EventListItem } from "@/types/events";
 
 const LIST_KEY = "gradpad:events:list:v1";
 const DETAIL_PREFIX = "gradpad:events:detail:";
@@ -8,7 +10,7 @@ const MAX_AGE_MS = 1000 * 60 * 30;
 export type EventsListCache = {
   savedAt: number;
   joinedEvents: EventListItem[];
-  railPreview: EventRailItem[];
+  railPreview: EventsRailPreviewModel;
 };
 
 type StoredDetail = { savedAt: number; event: EventDetailViewModel };
@@ -29,7 +31,12 @@ export function readEventsListCache(): EventsListCache | null {
   try {
     const raw = sessionStorage.getItem(LIST_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as EventsListCache;
+    const parsed = JSON.parse(raw) as EventsListCache & {
+      railPreview?: EventsRailPreviewModel | EventListItem[];
+    };
+    if (Array.isArray(parsed.railPreview)) {
+      parsed.railPreview = buildEventsRailPreview(parsed.joinedEvents ?? []);
+    }
     if (Date.now() - parsed.savedAt > MAX_AGE_MS) {
       sessionStorage.removeItem(LIST_KEY);
       listMemory.payload = null;
@@ -44,7 +51,7 @@ export function readEventsListCache(): EventsListCache | null {
 
 export function writeEventsListCache(
   joinedEvents: EventListItem[],
-  railPreview: EventRailItem[],
+  railPreview: EventsRailPreviewModel,
 ) {
   const payload: EventsListCache = {
     savedAt: Date.now(),

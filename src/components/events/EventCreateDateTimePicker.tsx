@@ -14,7 +14,8 @@ import {
   eachDayOfInterval,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 
@@ -34,6 +35,13 @@ function parseLocal(iso: string, fallback: Date): Date {
   if (!iso) return fallback;
   const d = parseISO(iso);
   return Number.isNaN(d.getTime()) ? fallback : d;
+}
+
+const MINUTE_STEP = 5;
+
+function snapMinute(minutes: number): number {
+  const snapped = Math.round(minutes / MINUTE_STEP) * MINUTE_STEP;
+  return snapped >= 60 ? 60 - MINUTE_STEP : snapped;
 }
 
 export function EventCreateDateTimePicker({ startAt, endAt, onStartChange, onEndChange }: Props) {
@@ -218,11 +226,32 @@ function DateTimeRow({
 }
 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button type="button" className="absolute inset-0 bg-foreground/40" onClick={onClose} aria-label="Close" />
-      <div className="relative z-10">{children}</div>
-    </div>
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-center justify-center overscroll-none p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-foreground/40"
+        onClick={onClose}
+        aria-label="Close"
+      />
+      <div className="relative z-10 max-h-[calc(100dvh-2rem)]">{children}</div>
+    </div>,
+    document.body,
   );
 }
 
@@ -237,8 +266,13 @@ function TimePickerModal({
 }) {
   const h12 = initial.getHours() % 12 || 12;
   const [hour, setHour] = useState(h12);
-  const [minute, setMinute] = useState(initial.getMinutes());
+  const [minute, setMinute] = useState(() => snapMinute(initial.getMinutes()));
   const [period, setPeriod] = useState<"AM" | "PM">(initial.getHours() >= 12 ? "PM" : "AM");
+  const hourValues = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), []);
+  const minuteValues = useMemo(
+    () => Array.from({ length: 60 / MINUTE_STEP }, (_, i) => i * MINUTE_STEP),
+    [],
+  );
 
   function confirm() {
     let h24 = hour % 12;
@@ -250,29 +284,28 @@ function TimePickerModal({
   return (
     <Modal onClose={onClose}>
       <div className="w-[min(100vw-2rem,22rem)] min-w-[18rem] rounded-2xl bg-card p-6 shadow-card sm:min-w-[20rem]">
-        <p className="mb-5 text-center text-base font-semibold">Select time</p>
-        <div className="flex items-stretch justify-center gap-3 sm:gap-4">
-          <ScrollColumn values={Array.from({ length: 12 }, (_, i) => i + 1)} value={hour} onChange={setHour} />
-          <ScrollColumn
-            values={Array.from({ length: 60 }, (_, i) => i)}
-            value={minute}
-            onChange={setMinute}
-            format={(v) => String(v).padStart(2, "0")}
+        <p className="mb-4 text-center text-base font-semibold">Select time</p>
+        <div className="relative rounded-2xl bg-page-secondary/35 px-3 py-2 sm:px-4">
+          <div
+            className="pointer-events-none absolute inset-x-3 top-1/2 z-10 h-11 -translate-y-1/2 rounded-xl border border-primary/20 bg-primary/10 sm:inset-x-4"
+            aria-hidden
           />
-          <div className="flex min-w-[4.5rem] flex-col justify-center gap-2">
-            {(["AM", "PM"] as const).map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPeriod(p)}
-                className={cn(
-                  "rounded-xl px-4 py-3 text-sm font-semibold",
-                  period === p ? "bg-primary text-white" : "bg-page-secondary",
-                )}
-              >
-                {p}
-              </button>
-            ))}
+          <div className="relative z-20 flex items-center justify-center gap-1.5 sm:gap-2">
+            <ScrollColumn values={hourValues} value={hour} onChange={setHour} />
+            <div
+              className="flex shrink-0 items-center justify-center text-xl font-semibold leading-none text-muted-foreground"
+              style={{ height: WHEEL_HEIGHT, width: "0.75rem" }}
+              aria-hidden
+            >
+              :
+            </div>
+            <ScrollColumn
+              values={minuteValues}
+              value={minute}
+              onChange={setMinute}
+              format={(v) => String(v).padStart(2, "0")}
+            />
+            <PeriodSelector period={period} onChange={setPeriod} />
           </div>
         </div>
         <Button type="button" className="mt-5 w-full" onClick={confirm}>
@@ -280,6 +313,48 @@ function TimePickerModal({
         </Button>
       </div>
     </Modal>
+  );
+}
+
+const WHEEL_ITEM_H = 44;
+const WHEEL_VISIBLE_ROWS = 5;
+const WHEEL_PAD = ((WHEEL_VISIBLE_ROWS - 1) / 2) * WHEEL_ITEM_H;
+const WHEEL_HEIGHT = WHEEL_VISIBLE_ROWS * WHEEL_ITEM_H;
+
+function PeriodSelector({
+  period,
+  onChange,
+}: {
+  period: "AM" | "PM";
+  onChange: (p: "AM" | "PM") => void;
+}) {
+  return (
+    <div
+      className="ml-1 flex shrink-0 items-center sm:ml-2"
+      style={{ height: WHEEL_HEIGHT }}
+    >
+      <div
+        className="flex rounded-xl border border-border/80 bg-card/90 p-1 shadow-sm"
+        role="group"
+        aria-label="AM or PM"
+      >
+        {(["AM", "PM"] as const).map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(p)}
+            className={cn(
+              "h-9 min-w-[2.65rem] rounded-lg px-2.5 text-sm font-semibold transition-colors sm:min-w-[2.85rem] sm:px-3",
+              period === p
+                ? "bg-primary text-white shadow-sm"
+                : "text-muted-foreground hover:bg-page-secondary/80 hover:text-foreground",
+            )}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -295,21 +370,84 @@ function ScrollColumn({
   format?: (v: number) => string;
 }) {
   const label = (v: number) => (fmt ? fmt(v) : String(v));
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollEndRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncingRef = useRef(false);
+
+  function scrollToValue(v: number, behavior: ScrollBehavior = "auto") {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const idx = values.indexOf(v);
+    if (idx < 0) return;
+    syncingRef.current = true;
+    el.scrollTo({ top: idx * WHEEL_ITEM_H, behavior });
+    requestAnimationFrame(() => {
+      syncingRef.current = false;
+    });
+  }
+
+  useLayoutEffect(() => {
+    scrollToValue(value);
+  }, [value, values]);
+
+  function onScroll() {
+    if (syncingRef.current) return;
+    if (scrollEndRef.current) clearTimeout(scrollEndRef.current);
+    scrollEndRef.current = setTimeout(() => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      const idx = Math.min(
+        values.length - 1,
+        Math.max(0, Math.round(el.scrollTop / WHEEL_ITEM_H)),
+      );
+      const next = values[idx];
+      if (next !== undefined && next !== value) onChange(next);
+    }, 80);
+  }
+
+  function onItemClick(v: number) {
+    onChange(v);
+    scrollToValue(v, "smooth");
+  }
+
   return (
-    <div className="h-52 w-[4.75rem] overflow-y-auto rounded-xl border border-border bg-page-secondary/80 sm:h-56 sm:w-20">
-      {values.map((v) => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => onChange(v)}
-          className={cn(
-            "block w-full py-2.5 text-center text-base tabular-nums",
-            v === value && "bg-primary font-semibold text-white",
-          )}
-        >
-          {label(v)}
-        </button>
-      ))}
+    <div
+      className="relative w-14 shrink-0 sm:w-[3.75rem]"
+      style={{ height: WHEEL_HEIGHT }}
+    >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-14 bg-gradient-to-b from-card to-transparent"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-14 bg-gradient-to-t from-card to-transparent"
+        aria-hidden
+      />
+      <div
+        ref={scrollerRef}
+        onScroll={onScroll}
+        className={cn(
+          "h-full snap-y snap-mandatory overflow-y-auto overscroll-contain",
+          "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+        )}
+      >
+        <div style={{ height: WHEEL_PAD }} aria-hidden />
+        {values.map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onItemClick(v)}
+            style={{ height: WHEEL_ITEM_H }}
+            className={cn(
+              "flex w-full snap-center items-center justify-center text-lg tabular-nums transition-colors",
+              v === value ? "font-semibold text-foreground" : "font-medium text-muted-foreground/70",
+            )}
+          >
+            {label(v)}
+          </button>
+        ))}
+        <div style={{ height: WHEEL_PAD }} aria-hidden />
+      </div>
     </div>
   );
 }

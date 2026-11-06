@@ -39,6 +39,12 @@ function invalidateEvent(eventId: string) {
   updateTag(eventDetailCacheTag(eventId));
 }
 
+/** Hot path after QR/manual check-in — avoid revalidating the whole app shell. */
+function invalidateEventCheckIn(eventId: string) {
+  revalidatePath(`/events/${eventId}/manage/check-in`);
+  revalidatePath(`/events/${eventId}/manage/statistics`);
+}
+
 export async function loadEventManageStatistics(eventId: string) {
   const blocked = requireStaging();
   if (blocked) return { error: blocked.error, stats: null };
@@ -99,7 +105,7 @@ export async function manualCheckInAction(
     return { error: readStagingActionError(result) ?? "Check-in failed." };
   }
 
-  invalidateEvent(eventId);
+  invalidateEventCheckIn(eventId);
   return { success: "Attendee checked in." };
 }
 
@@ -168,7 +174,7 @@ export async function qrCheckInAction(
     return { error: qrCheckInErrorMessage(result.data, result.status) };
   }
 
-  invalidateEvent(eventId);
+  invalidateEventCheckIn(eventId);
   return { success: qrCheckInSuccessMessage(result.data) };
 }
 

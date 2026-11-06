@@ -46,6 +46,17 @@ export async function fetchEventAttendeesRaw(eventId: string) {
   return serverFetchJson<unknown>(`events/${eventId}/attendees/`);
 }
 
+/** Instant registration for public free events (gradpad-web TicketPurchasePopup). */
+export async function stagingRegisterPublicEventRaw(
+  eventId: string,
+  body: Record<string, unknown>,
+) {
+  return serverFetchJson<unknown>(`events/open/${eventId}/register/`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export async function stagingQrCheckInRaw(qr_data: string) {
   return serverFetchJson<unknown>("events/payments/qr-check-in/", {
     method: "POST",

@@ -5,7 +5,9 @@ import { EventsRouteLoading } from "@/components/events/EventsRouteLoading";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getApiSessionProfile } from "@/lib/auth/get-api-session-profile";
 import { isDemoStaticUi } from "@/lib/demo-mode";
-import { getEventDetail } from "@/lib/events/queries";
+import { loadEventRegistrationStatus } from "@/lib/events/actions";
+import type { EventRegistrationTicketView } from "@/lib/events/map-event-tickets";
+import { getEventAttendeeRoster, getEventDetail } from "@/lib/events/queries";
 
 type Props = { params: Promise<{ eventId: string }> };
 
@@ -23,20 +25,31 @@ async function EventDetailContent({ params }: Props) {
   }
 
   const { eventId } = await params;
-  const [event, profile] = await Promise.all([
-    getEventDetail(eventId),
+  const event = await getEventDetail(eventId);
+  const [profile, attendees] = await Promise.all([
     getApiSessionProfile(),
+    event
+      ? getEventAttendeeRoster(eventId, { isPublic: event.isPublic })
+      : Promise.resolve([]),
   ]);
 
   if (!event) notFound();
-  if (!profile) redirect("/login");
+  if (!profile) redirect(`/events/${eventId}/event-invite`);
+
+  let initialRegistration: EventRegistrationTicketView | null = null;
+  if (event.isAttendee) {
+    const reg = await loadEventRegistrationStatus(eventId);
+    initialRegistration = reg.registration;
+  }
 
   return (
     <PageContainer>
       <EventDetailClient
         event={event}
+        attendees={attendees}
         viewerName={profile.fullName}
         viewerEmail={profile.email ?? ""}
+        initialRegistration={initialRegistration}
       />
     </PageContainer>
   );

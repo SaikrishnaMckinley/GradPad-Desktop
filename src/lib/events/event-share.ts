@@ -1,7 +1,7 @@
 import { siteOrigin } from "@/lib/events/site-url";
 
 export function buildEventInviteUrl(eventId: string, origin = siteOrigin()): string {
-  return `${origin.replace(/\/$/, "")}/events/${eventId}`;
+  return `${origin.replace(/\/$/, "")}/events/${eventId}/event-invite`;
 }
 
 async function writeTextToClipboard(text: string): Promise<void> {

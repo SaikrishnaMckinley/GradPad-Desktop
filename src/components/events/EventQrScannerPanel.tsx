@@ -5,18 +5,16 @@ import { Flashlight, ScanLine } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { submitQrCheckIn } from "@/lib/events/manage-actions";
 import { cn } from "@/lib/utils/cn";
 
 const SCANNER_ID = "gradpad-event-qr-reader";
 const SCAN_DEBOUNCE_MS = 2500;
 
 type Props = {
-  eventId: string;
-  onCheckedIn: () => void;
+  onScan: (decodedText: string) => void | Promise<void>;
 };
 
-export function EventQrScannerPanel({ eventId, onCheckedIn }: Props) {
+export function EventQrScannerPanel({ onScan }: Props) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const processingRef = useRef(false);
   const lastScanRef = useRef<{ text: string; at: number } | null>(null);
@@ -56,19 +54,14 @@ export function EventQrScannerPanel({ eventId, onCheckedIn }: Props) {
       processingRef.current = true;
       lastScanRef.current = { text: decodedText, at: now };
 
-      await stopScanner();
-
-      const result = await submitQrCheckIn(eventId, decodedText);
-      if (result.error) {
-        toast.error(result.error);
-      } else if (result.success) {
-        toast.success(result.success);
-        onCheckedIn();
+      void stopScanner();
+      try {
+        await onScan(decodedText);
+      } finally {
+        processingRef.current = false;
       }
-
-      processingRef.current = false;
     },
-    [eventId, onCheckedIn, stopScanner],
+    [onScan, stopScanner],
   );
 
   const startScanner = useCallback(async () => {

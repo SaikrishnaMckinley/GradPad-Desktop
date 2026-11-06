@@ -1,24 +1,30 @@
 import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 import { EventRegisterClient } from "@/components/events/EventRegisterClient";
+import { EventsRouteLoading } from "@/components/events/EventsRouteLoading";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getApiSessionProfile } from "@/lib/auth/get-api-session-profile";
 import { isDemoStaticUi } from "@/lib/demo-mode";
-import { getEventDetail } from "@/lib/events/queries";
+import { getEventDetail, getEventRegistrationDonationContext } from "@/lib/events/queries";
 
 type Props = { params: Promise<{ eventId: string }> };
 
+export const instant = true;
+
 export async function generateMetadata({ params }: Props) {
   const { eventId } = await params;
-  return { title: `Register · ${eventId}` };
+  const event = await getEventDetail(eventId);
+  return { title: event ? `Register · ${event.title}` : "Register" };
 }
 
-export default async function EventRegisterPage({ params }: Props) {
+async function EventRegisterContent({ params }: Props) {
   if (isDemoStaticUi()) redirect("/events");
 
   const { eventId } = await params;
-  const [event, profile] = await Promise.all([
+  const [event, profile, donationContext] = await Promise.all([
     getEventDetail(eventId),
     getApiSessionProfile(),
+    getEventRegistrationDonationContext(eventId),
   ]);
 
   if (!event) notFound();
@@ -30,7 +36,16 @@ export default async function EventRegisterPage({ params }: Props) {
         event={event}
         viewerName={profile.fullName}
         viewerEmail={profile.email ?? ""}
+        donationContext={donationContext}
       />
     </PageContainer>
+  );
+}
+
+export default function EventRegisterPage(props: Props) {
+  return (
+    <Suspense fallback={<EventsRouteLoading />}>
+      <EventRegisterContent {...props} />
+    </Suspense>
   );
 }

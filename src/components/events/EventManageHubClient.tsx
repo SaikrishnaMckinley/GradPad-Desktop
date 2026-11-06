@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { deleteEventAction } from "@/lib/events/manage-actions";
 import { cn } from "@/lib/utils/cn";
 import { ChevronLeft, BarChart3, ScanLine } from "lucide-react";
@@ -17,7 +17,7 @@ type Props = {
 };
 
 export function EventManageHubClient({ eventId, title, communityName }: Props) {
-  const router = useRouter();
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [state, formAction, pending] = useActionState(
     deleteEventAction.bind(null, eventId),
     null,
@@ -27,14 +27,8 @@ export function EventManageHubClient({ eventId, title, communityName }: Props) {
     if (state?.error) toast.error(state.error);
   }, [state]);
 
-  function onDeleteClick() {
-    if (
-      !window.confirm(
-        "Delete this event permanently? Attendees will lose access and this cannot be undone.",
-      )
-    ) {
-      return;
-    }
+  function confirmDelete() {
+    setDeleteOpen(false);
     const form = document.getElementById(`delete-event-${eventId}`) as HTMLFormElement | null;
     form?.requestSubmit();
   }
@@ -95,16 +89,24 @@ export function EventManageHubClient({ eventId, title, communityName }: Props) {
             variant="outline"
             className="w-full border-destructive/40 text-destructive hover:bg-destructive/5"
             disabled={pending}
-            onClick={onDeleteClick}
+            onClick={() => setDeleteOpen(true)}
           >
             {pending ? "Deleting…" : "Delete event"}
           </Button>
         </form>
       </Card>
 
-      <Button type="button" variant="ghost" className="w-full" onClick={() => router.back()}>
-        Cancel
-      </Button>
+      <ConfirmDialog
+        open={deleteOpen}
+        title="Delete this event?"
+        description="This permanently removes the event, registrations, and check-in history. Attendees will lose access. This cannot be undone."
+        confirmLabel="Delete event"
+        cancelLabel="Keep event"
+        destructive
+        busy={pending}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteOpen(false)}
+      />
     </div>
   );
 }

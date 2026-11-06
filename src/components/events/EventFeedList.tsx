@@ -18,19 +18,29 @@ function badgeClass(tone: EventBadgeTone) {
 
 function EventThumb({ event }: { event: EventListItem }) {
   const [src, setSrc] = useState(event.imageUrl ?? FALLBACK_IMAGE);
+  const [failed, setFailed] = useState(false);
   const remote = src.startsWith("http");
+
+  if (failed) {
+    return (
+      <div className="relative mx-auto flex aspect-[4/3] w-full max-w-[200px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-page-secondary px-3 text-center sm:mx-0 sm:h-[132px] sm:w-[176px] sm:max-w-none">
+        <p className="line-clamp-3 text-sm font-semibold text-muted-foreground">{event.title}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative mx-auto aspect-[4/3] w-full max-w-[200px] shrink-0 overflow-hidden rounded-2xl sm:mx-0 sm:h-[132px] sm:w-[176px] sm:max-w-none">
       <Image
         src={src}
-        alt=""
+        alt={event.title}
         fill
         className="object-cover"
         sizes="176px"
         unoptimized={remote}
         onError={() => {
           if (src !== FALLBACK_IMAGE) setSrc(FALLBACK_IMAGE);
+          else setFailed(true);
         }}
       />
     </div>

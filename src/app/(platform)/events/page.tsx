@@ -1,8 +1,9 @@
 import { EventsComingUpRail } from "@/components/events/EventsComingUpRail";
+import { EventsComingUpRailLive } from "@/components/events/EventsComingUpRailLive";
 import { EventsPageClient } from "@/components/events/EventsPageClient";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { usesStagingApi } from "@/lib/demo-mode";
-import { getJoinedEvents, getUpcomingEventsPreview } from "@/lib/events/queries";
+import { getJoinedEvents } from "@/lib/events/queries";
 
 export const metadata = {
   title: "Events",
@@ -12,19 +13,18 @@ export const instant = true;
 
 export default async function EventsPage() {
   const stagingApi = usesStagingApi();
-  let joinedEvents: Awaited<ReturnType<typeof getJoinedEvents>> = [];
-  let railPreview: Awaited<ReturnType<typeof getUpcomingEventsPreview>> | undefined;
-  if (stagingApi) {
-    [joinedEvents, railPreview] = await Promise.all([
-      getJoinedEvents(),
-      getUpcomingEventsPreview(3),
-    ]);
-  }
+  const joinedEvents = stagingApi ? await getJoinedEvents() : [];
 
   return (
     <PageContainer
       withRightRail
-      rightRail={<EventsComingUpRail events={stagingApi ? railPreview : undefined} />}
+      rightRail={
+        stagingApi ? (
+          <EventsComingUpRailLive events={joinedEvents} />
+        ) : (
+          <EventsComingUpRail />
+        )
+      }
     >
       <EventsPageClient stagingApi={stagingApi} initialEvents={joinedEvents} />
     </PageContainer>

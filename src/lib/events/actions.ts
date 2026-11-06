@@ -10,19 +10,37 @@ import {
   connectCommunityStripeRaw,
   createEventJoinRequestRaw,
   createEventPaymentLinkRaw,
+  fetchEventCalculatePriceRaw,
   patchEventDonationSettingsRaw,
   fetchAvailablePayoutAccountsRaw,
   fetchCommunityPayoutStatusRaw,
+  fetchEventRegistrationStatusRaw,
   linkPersonalBankAccountRaw,
   refreshCommunityStripeOnboardingRaw,
 } from "@/lib/api/event-payments";
-import { stagingCreateEventRaw, stagingPatchEventRaw } from "@/lib/api/events";
+import {
+  stagingCreateEventRaw,
+  stagingPatchEventRaw,
+  stagingRegisterPublicEventRaw,
+} from "@/lib/api/events";
 import { requireActiveCommunityMember } from "@/lib/communities/membership-guard";
 import { readStagingActionError } from "@/lib/api/server-fetch";
 import { getSessionTokens } from "@/lib/auth/session-cookies";
 import { usesStagingApi } from "@/lib/demo-mode";
 import { eventCreateReturnPath, siteOrigin } from "@/lib/events/site-url";
 import { isUuid } from "@/lib/utils/uuid";
+import {
+  isSawubonaCommunity,
+  resolveAttendeeIdentity,
+  validateAttendeeIdentityValue,
+  type AttendeeIdentityKind,
+} from "@/lib/events/attendee-identity";
+import { buildEventDonationPayload } from "@/lib/events/event-donation";
+import { mapRegistrationStatusPayload } from "@/lib/events/map-event-tickets";
+import {
+  normalizeEventPricing,
+  type EventPricingResponse,
+} from "@/lib/events/event-pricing";
 import {
   buildPayoutLoadResult,
   parseCommunityPayoutStatus,
@@ -106,8 +124,11 @@ export async function startCommunityStripeConnect(
   if (blocked) return blocked;
 
   const origin = siteOrigin();
-  const returnUrl = `${origin}${returnPath}`;
-  const refreshUrl = `${origin}/communities/${slug}/manage-payout?return=${encodeURIComponent(returnPath)}`;
+  const withQuery = (path: string, key: string, value: string) =>
+    path.includes("?") ? `${path}&${key}=${value}` : `${path}?${key}=${value}`;
+  const returnUrl = `${origin}${withQuery(returnPath, "payout_setup", "success")}`;
+  const refreshUrl = `${origin}${withQuery(returnPath, "payout_setup", "refresh")}`;
+  void slug;
 
   const statusResult = await fetchCommunityPayoutStatusRaw(communityId);
   const payoutStatus =
@@ -386,6 +407,8 @@ export async function requestEventJoin(
   const message = (formData.get("message") as string | null)?.trim() ?? "";
   const body = new FormData();
   if (message) body.append("message", message);
+  const ticketId = (formData.get("ticketId") as string | null)?.trim();
+  if (ticketId) body.append("ticket_id", ticketId);
 
   const result = await createEventJoinRequestRaw(eventId, body);
   if (!result.ok) {
@@ -397,6 +420,162 @@ export async function requestEventJoin(
   return { success: "Request sent. The host will review your registration." };
 }
 
+/** Free events: public → instant open register; private community → join request (gradpad-web). */
+export async function registerFreeEventAction(
+  eventId: string,
+  isPublicEvent: boolean,
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  if (isPublicEvent) {
+    const blocked = requireStaging();
+    if (blocked) return blocked;
+
+    const email = (formData.get("email") as string | null)?.trim() ?? "";
+    const ticketId = (formData.get("ticketId") as string | null)?.trim() ?? "";
+    const firstName = (formData.get("firstName") as string | null)?.trim() ?? "";
+    const lastName = (formData.get("lastName") as string | null)?.trim() ?? "";
+
+    if (!email) return { error: "Your account email is required to register." };
+    if (!ticketId) return { error: "This event has no free ticket configured." };
+
+    const communityName = (formData.get("communityName") as string | null)?.trim() ?? "";
+    const sawubona = isSawubonaCommunity({ communityName });
+
+    const displayName = `${firstName} ${lastName}`.trim() || firstName || "Guest";
+    const registrationAnswers: Record<string, unknown> = {
+      name: displayName,
+      email,
+    };
+
+    if (!sawubona) {
+      const kind =
+        (formData.get("attendeeIdentityKind") as AttendeeIdentityKind | null) ?? "class_year";
+      const classYearInput = (formData.get("classYearInput") as string | null)?.trim() ?? "";
+      const attendeeIdentity = resolveAttendeeIdentity(kind, classYearInput);
+      if (!validateAttendeeIdentityValue(attendeeIdentity)) {
+        return { error: "Enter a 4-digit class year, Guest, or BLS Parent." };
+      }
+      registrationAnswers.class_year = attendeeIdentity;
+      registrationAnswers.attendee_identity = attendeeIdentity;
+      if (/^\d{4}$/.test(attendeeIdentity)) {
+        registrationAnswers.graduation_year = attendeeIdentity;
+      }
+    }
+
+    const payload: Record<string, unknown> = {
+      first_name: firstName || "Guest",
+      last_name: lastName,
+      email,
+      ticket_id: ticketId,
+      has_plus_one: false,
+      registration_answers: registrationAnswers,
+    };
+
+    if (!sawubona) {
+      const identity = String(registrationAnswers.attendee_identity ?? "");
+      payload.class_year = identity;
+      payload.attendee_identity = identity;
+      if (/^\d{4}$/.test(identity)) {
+        payload.graduation_year = identity;
+      }
+    }
+
+    const result = await stagingRegisterPublicEventRaw(eventId, payload);
+    const row =
+      result.data && typeof result.data === "object"
+        ? (result.data as Record<string, unknown>)
+        : null;
+    const alreadyRegistered = row?.already_registered === true;
+
+    if (!result.ok && !alreadyRegistered) {
+      const apiError =
+        (typeof row?.error === "string" && row.error) ||
+        readStagingActionError(result) ||
+        "Could not complete registration.";
+      return { error: apiError };
+    }
+
+    revalidatePath(`/events/${eventId}`);
+    revalidatePath("/events");
+    updateTag(EVENTS_LIST_CACHE_TAG);
+    updateTag(eventDetailCacheTag(eventId));
+    return {
+      success: alreadyRegistered
+        ? "You're already registered for this event."
+        : "You're registered for this event.",
+    };
+  }
+
+  return requestEventJoin(eventId, _prev, formData);
+}
+
+export async function loadEventRegistrationStatus(eventId: string): Promise<{
+  error: string | null;
+  registration: ReturnType<typeof mapRegistrationStatusPayload>;
+}> {
+  const blocked = requireStaging();
+  if (blocked) {
+    return { error: blocked.error ?? "Staging API required.", registration: null };
+  }
+
+  const result = await fetchEventRegistrationStatusRaw(eventId);
+  if (!result.ok) {
+    return {
+      error: readStagingActionError(result) ?? "Could not load your ticket.",
+      registration: null,
+    };
+  }
+
+  return {
+    error: null,
+    registration: mapRegistrationStatusPayload(result.data),
+  };
+}
+
+export async function quoteEventRegistrationPrice(
+  eventId: string,
+  input: {
+    ticketId: string;
+    hasPlusOne: boolean;
+    couponCode?: string;
+    donationAmount?: number;
+    donationCoverFees?: boolean;
+    donationFundId?: string | null;
+  },
+): Promise<{ pricing: ReturnType<typeof normalizeEventPricing> } | { error: string }> {
+  const blocked = requireStaging();
+  if (blocked) return { error: blocked.error ?? "Staging API required." };
+
+  if (!input.ticketId) return { error: "Select a ticket." };
+
+  const result = await fetchEventCalculatePriceRaw(eventId, {
+    ticket_id: input.ticketId,
+    ticket_quantity: 1,
+    has_plus_one: input.hasPlusOne,
+    coupon_code: input.couponCode?.trim() || undefined,
+    donation_amount:
+      typeof input.donationAmount === "number" && input.donationAmount > 0
+        ? input.donationAmount
+        : undefined,
+    donation_cover_fees: input.donationCoverFees,
+    donation_fund_id: input.donationFundId ?? undefined,
+  });
+
+  if (!result.ok || !result.data) {
+    return {
+      error: readStagingActionError(result) ?? "Could not calculate checkout total.",
+    };
+  }
+
+  const raw = result.data as EventPricingResponse;
+  if (raw.coupon_error) {
+    return { error: raw.coupon_error };
+  }
+
+  return { pricing: normalizeEventPricing(raw) };
+}
+
 export async function startEventCheckout(
   eventId: string,
   _prev: ActionResult | null,
@@ -405,21 +584,64 @@ export async function startEventCheckout(
   const blocked = requireStaging();
   if (blocked) return blocked;
 
-  const body = new FormData();
   const ticketId = formData.get("ticketId");
   const hasPlusOne = formData.get("hasPlusOne") === "true";
-  const plusOneName = formData.get("plusOneName");
-  const plusOneEmail = formData.get("plusOneEmail");
-  const couponCode = formData.get("couponCode");
+  const plusOneName =
+    typeof formData.get("plusOneName") === "string"
+      ? String(formData.get("plusOneName")).trim()
+      : "";
+  const plusOneEmail =
+    typeof formData.get("plusOneEmail") === "string"
+      ? String(formData.get("plusOneEmail")).trim()
+      : "";
+  const couponCode =
+    typeof formData.get("couponCode") === "string"
+      ? String(formData.get("couponCode")).trim().toUpperCase()
+      : "";
 
-  if (typeof ticketId === "string" && ticketId) body.append("ticket_id", ticketId);
-  if (hasPlusOne) {
-    body.append("has_plus_one", "true");
-    if (typeof plusOneName === "string") body.append("plus_one_name", plusOneName);
-    if (typeof plusOneEmail === "string") body.append("plus_one_email", plusOneEmail);
+  if (hasPlusOne && !plusOneName) {
+    return { error: "Plus-one guest full name is required." };
   }
-  if (typeof couponCode === "string" && couponCode.trim()) {
-    body.append("coupon_code", couponCode.trim().toUpperCase());
+  if (hasPlusOne && !plusOneEmail) {
+    return { error: "Plus-one guest email is required." };
+  }
+
+  const donationAmount = Number(formData.get("donationAmount") ?? 0);
+  const donationCoverFees = formData.get("donationCoverFees") === "true";
+  const donationFundId = formData.get("donationFundId");
+  const donationIsAnonymous = formData.get("donationIsAnonymous") === "true";
+  const donationMessage =
+    typeof formData.get("donationMessage") === "string"
+      ? String(formData.get("donationMessage"))
+      : "";
+
+  const body: Record<string, unknown> = {
+    ticket_id: typeof ticketId === "string" ? ticketId : "",
+    ticket_quantity: 1,
+    has_plus_one: hasPlusOne,
+    registration_answers: {},
+  };
+
+  if (hasPlusOne) {
+    body.plus_one_name = plusOneName;
+    body.plus_one_email = plusOneEmail;
+    body.plus_one_guest = { full_name: plusOneName, email: plusOneEmail };
+  }
+  if (couponCode) body.coupon_code = couponCode;
+
+  if (Number.isFinite(donationAmount) && donationAmount > 0) {
+    Object.assign(
+      body,
+      buildEventDonationPayload({
+        amount: donationAmount,
+        isCustom: formData.get("donationIsCustom") === "true",
+        coverFees: donationCoverFees,
+        isAnonymous: donationIsAnonymous,
+        message: donationMessage,
+        fundId:
+          typeof donationFundId === "string" && donationFundId ? donationFundId : null,
+      }),
+    );
   }
 
   const result = await createEventPaymentLinkRaw(eventId, body);

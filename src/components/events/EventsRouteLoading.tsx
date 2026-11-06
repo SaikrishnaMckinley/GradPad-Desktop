@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { EventDetailClient } from "@/components/events/EventDetailClient";
 import { EventsComingUpRail } from "@/components/events/EventsComingUpRail";
+import { EventsComingUpRailLive } from "@/components/events/EventsComingUpRailLive";
 import { EventsPageClient } from "@/components/events/EventsPageClient";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useShellData } from "@/components/layout/ShellDataProvider";
@@ -25,7 +26,7 @@ function EventsListFallback() {
     return (
       <PageContainer
         withRightRail
-        rightRail={<EventsComingUpRail events={cached.railPreview} />}
+        rightRail={<EventsComingUpRailLive events={cached.joinedEvents} />}
       >
         <EventsPageClient stagingApi initialEvents={cached.joinedEvents} />
       </PageContainer>
@@ -52,6 +53,7 @@ function EventDetailFallback({ eventId }: { eventId: string }) {
       <PageContainer>
         <EventDetailClient
           event={cached}
+          attendees={[]}
           viewerName={shellUser.fullName}
           viewerEmail=""
         />
