@@ -38,6 +38,12 @@ export type CommunityDetail = CommunityListItem & {
   createdBy: string | null;
 };
 
+export type CommunityMemberDisplayRole =
+  | "payment_owner"
+  | "community_owner"
+  | "admin"
+  | "member";
+
 export type CommunityMemberRow = {
   id: string;
   userId: string;
@@ -45,6 +51,8 @@ export type CommunityMemberRow = {
   username: string | null;
   avatarUrl: string | null;
   role: MembershipRole;
+  /** gradpad-web roster role (payment owner, community owner, etc.). */
+  displayRole?: CommunityMemberDisplayRole;
   status: MembershipStatus;
   joinedAt: string;
 };

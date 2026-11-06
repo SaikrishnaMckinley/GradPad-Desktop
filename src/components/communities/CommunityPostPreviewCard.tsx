@@ -68,6 +68,7 @@ type Props = {
   canEdit?: boolean;
   likesCount?: number;
   likedByMe?: boolean;
+  reactionType?: string | null;
   commentAllow?: boolean;
   comments?: PostCommentRow[];
   shareCount?: number;
@@ -87,6 +88,7 @@ export function CommunityPostPreviewCard({
   canEdit = false,
   likesCount = 0,
   likedByMe = false,
+  reactionType = null,
   commentAllow = true,
   comments = [],
   shareCount = 0,
@@ -220,8 +222,10 @@ export function CommunityPostPreviewCard({
 
   const engagementProps = {
     postId,
+    communityId,
     likesCount,
     likedByMe,
+    reactionType,
     commentAllow,
     comments,
     shareCount,

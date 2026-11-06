@@ -59,6 +59,7 @@ export default async function DynamicCommunityPage({ params }: Props) {
         events={events}
         posts={posts}
         membersPreview={membersPage.members.map((m) => ({
+          id: m.userId,
           fullName: m.fullName,
           avatarUrl: m.avatarUrl,
         }))}

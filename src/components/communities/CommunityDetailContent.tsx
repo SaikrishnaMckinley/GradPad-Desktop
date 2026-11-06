@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { CommunityShareLinkButton } from "@/components/communities/CommunityShareLinkButton";
+import { CommunityShareMenu } from "@/components/communities/CommunityShareMenu";
 import { CommunityCoverImage } from "@/components/communities/CommunityCoverImage";
 import { CommunityEmptyState } from "@/components/communities/CommunityEmptyState";
 import { CommunityMembershipActions } from "@/components/communities/CommunityMembershipActions";
+import { CommunityMembersFacepile } from "@/components/communities/CommunityMembersFacepile";
 import { CommunityMoreMenu } from "@/components/communities/CommunityMoreMenu";
 import { CommunityPostPreviewCard } from "@/components/communities/CommunityPostPreviewCard";
 import { CommunityMark } from "@/components/layout/CommunityMark";
-import { Avatar } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { communityAccentColor, communityInitials } from "@/lib/communities/slug";
@@ -52,12 +52,14 @@ export type CommunityPostRow = {
   media?: { url: string; type: string }[];
   likesCount?: number;
   likedByMe?: boolean;
+  reactionType?: string | null;
   commentAllow?: boolean;
   comments?: PostCommentRow[];
   shareCount?: number;
 };
 
 type MemberPreview = {
+  id: string;
   fullName: string;
   avatarUrl: string | null;
 };
@@ -91,7 +93,6 @@ export function CommunityDetailContent({
   const postsSubtitle = `Latest updates from ${community.name}`;
   const canSeeContent = isMember || community.visibility === "public";
   const isPendingJoin = community.membershipStatus === "pending";
-  const extraMembers = Math.max(community.memberCount - membersPreview.length, 0);
 
   return (
     <>
@@ -127,59 +128,35 @@ export function CommunityDetailContent({
           )}
         </div>
         <div className="relative px-5 pb-6 pt-0 md:px-8">
-          <div className="-mt-10 flex gap-4">
-            <CommunityMark
-              name={community.name}
-              initials={initials}
-              accentColor={accent}
-              logoUrl={community.logoUrl}
-              shape="rounded"
-              size="lg"
-              className="h-20 w-20 shrink-0 text-xl ring-4 ring-card"
-            />
-            <div className="min-w-0 flex-1 pt-12 md:pt-10">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h1 className="text-2xl font-semibold">{community.name}</h1>
-                  {community.location ? (
-                    <p className="text-sm text-muted-foreground">{community.location}</p>
-                  ) : null}
-                </div>
-                <div className="flex shrink-0 gap-1">
-                  <CommunityShareLinkButton
-                    communityId={community.id}
-                    communityName={community.name}
-                  />
-                  <CommunityMoreMenu communitySlug={community.slug} canManage={canManage} />
-                </div>
-              </div>
-            </div>
+          <div className="absolute right-4 top-14 z-10 flex shrink-0 gap-1 md:right-8 md:top-13">
+            <CommunityShareMenu communityId={community.id} communityName={community.name} />
+            <CommunityMoreMenu communitySlug={community.slug} canManage={canManage} />
           </div>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">{about}</p>
-          <div className="mt-4 flex items-center">
-            {membersPreview.length > 0 ? (
-              <div className="flex -space-x-2">
-                {membersPreview.slice(0, 4).map((m) => (
-                  <Avatar
-                    key={m.fullName}
-                    src={m.avatarUrl}
-                    alt={m.fullName}
-                    fallback={m.fullName}
-                    size="sm"
-                  />
-                ))}
-              </div>
+          <CommunityMark
+            name={community.name}
+            initials={initials}
+            accentColor={accent}
+            logoUrl={community.logoUrl}
+            shape="rounded"
+            size="lg"
+            className="-mt-10 h-20 w-20 shrink-0 text-xl ring-4 ring-card"
+          />
+          <div className="mt-4 min-w-0 pr-14 md:pr-16">
+            <h1 className="text-2xl font-semibold">{community.name}</h1>
+            {community.location ? (
+              <p className="mt-0.5 text-sm text-muted-foreground">{community.location}</p>
             ) : null}
-            {extraMembers > 0 ? (
-              <span className="ml-2 flex h-8 min-w-8 items-center justify-center rounded-full bg-primary-light px-2 text-xs font-semibold text-primary">
-                +{extraMembers > 99 ? "99" : extraMembers}
-              </span>
-            ) : community.memberCount > 0 ? (
-              <span className="text-sm text-muted-foreground">
-                {community.memberCount.toLocaleString()} member
-                {community.memberCount === 1 ? "" : "s"}
-              </span>
-            ) : null}
+          </div>
+          <p className="mt-4 w-full text-justify text-sm leading-relaxed text-muted-foreground [text-align-last:justify]">
+            {about}
+          </p>
+          <div className="mt-4">
+            <CommunityMembersFacepile
+              communitySlug={community.slug}
+              members={membersPreview}
+              memberCount={community.memberCount}
+              canOpenDirectory={isMember}
+            />
           </div>
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {isMember || canManage ? (
@@ -375,6 +352,7 @@ export function CommunityDetailContent({
                 canEdit={post.canEdit}
                 likesCount={post.likesCount}
                 likedByMe={post.likedByMe}
+                reactionType={post.reactionType}
                 commentAllow={post.commentAllow}
                 comments={post.comments}
                 shareCount={post.shareCount}

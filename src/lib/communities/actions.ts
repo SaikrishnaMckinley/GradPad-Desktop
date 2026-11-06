@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { setActiveCommunitySlug } from "@/lib/communities/active-community";
 import { requireActiveCommunityMember } from "@/lib/communities/membership-guard";
@@ -19,6 +19,11 @@ import {
 import { fetchCommunityDetailRaw } from "@/lib/api/communities";
 import { mapCommunityDetail, mapSidebarCommunity } from "@/lib/api/map-community";
 import { communityHubAfterInvitePath } from "@/lib/communities/community-invite-url";
+import {
+  communityAdminCacheTag,
+  communityHubCacheTag,
+  communityMembersDirectoryCacheTag,
+} from "@/lib/communities/cache-tags";
 import { resolveCommunityId } from "@/lib/communities/api-queries";
 import { isDemoStaticUi, usesStagingApi } from "@/lib/demo-mode";
 import { createClient } from "@/lib/supabase/server";
@@ -56,6 +61,10 @@ async function requireUserId(): Promise<string | ActionResult> {
 }
 
 function revalidateCommunity(slug: string) {
+  const profile = "minutes" as const;
+  revalidateTag(communityHubCacheTag(slug), profile);
+  revalidateTag(communityAdminCacheTag(slug), profile);
+  revalidateTag(communityMembersDirectoryCacheTag(slug), profile);
   revalidatePath("/communities");
   revalidatePath(`/communities/${slug}`);
   revalidatePath(`/communities/${slug}/admin`);

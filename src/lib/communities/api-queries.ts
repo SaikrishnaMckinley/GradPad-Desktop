@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { flattenCommunityListResponse } from "@/lib/api/community-list";
 import {
   communitiesFromResponse,
@@ -18,6 +19,12 @@ import {
   mapCommunityListItem,
   type ApiCommunityRecord,
 } from "@/lib/api/map-community";
+import {
+  memberDisplayNameFromApi,
+  memberPhotoFromApi,
+} from "@/lib/communities/member-display-name";
+import { communityHubCacheTag } from "@/lib/communities/cache-tags";
+import { getApiSessionProfile } from "@/lib/auth/get-api-session-profile";
 import { unwrapList } from "@/lib/api/parse-list";
 import { parseEventStartIso } from "@/lib/events/format-event-datetime";
 import { mapPostsResponse } from "@/lib/posts/map-post";
@@ -55,6 +62,19 @@ export async function resolveCommunityId(routeKey: string): Promise<string | nul
   return null;
 }
 
+async function getCommunityDetailByIdCached(
+  communityId: string,
+  routeKey: string,
+): Promise<CommunityDetail | null> {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag(communityHubCacheTag(routeKey));
+
+  const result = await fetchCommunityDetailRaw(communityId, { cacheable: true });
+  if (!result.ok || !result.data) return null;
+  return mapCommunityDetail(result.data);
+}
+
 export async function getCommunityByRouteKey(
   routeKey: string,
   _userId: string | null,
@@ -65,6 +85,15 @@ export async function getCommunityByRouteKey(
   const result = await fetchCommunityDetailRaw(communityId);
   if (!result.ok || !result.data) return null;
   return mapCommunityDetail(result.data);
+}
+
+/** Cached detail for instant client navigations (members directory, etc.). */
+export async function getCommunityByRouteKeyCached(
+  routeKey: string,
+): Promise<CommunityDetail | null> {
+  const communityId = await resolveCommunityId(routeKey);
+  if (!communityId) return null;
+  return getCommunityDetailByIdCached(communityId, routeKey.toLowerCase());
 }
 
 export async function listDiscoverableCommunities(
@@ -195,9 +224,10 @@ export async function getCommunityEventsPreview(communityId: string, limit = 4) 
 }
 
 export async function getCommunityPostsPreview(communityId: string, limit = 5) {
+  const session = await getApiSessionProfile();
   const result = await fetchCommunityPostsRaw(communityId, limit);
   if (!result.ok || !result.data) return [];
-  return mapPostsResponse(result.data).map((post) => ({
+  return mapPostsResponse(result.data, null, session?.id ?? null).map((post) => ({
     id: post.id,
     title: post.title,
     content: post.content,
@@ -209,23 +239,12 @@ export async function getCommunityPostsPreview(communityId: string, limit = 5) {
     media: post.media,
     likesCount: post.likesCount,
     likedByMe: post.likedByMe,
+    reactionType: post.reactionType,
     commentAllow: post.commentAllow,
     comments: post.comments,
     shareCount: post.shareCount,
   }));
 }
-
-type ApiMember = {
-  id?: string;
-  user_id?: string;
-  first_name?: string;
-  last_name?: string;
-  nickname?: string;
-  photo?: string | null;
-  role?: string;
-  status?: string;
-  joined_at?: string;
-};
 
 export async function getCommunityMembers(
   communityId: string,
@@ -238,32 +257,42 @@ export async function getCommunityMembers(
   }
 
   const all = unwrapList(result.data).map((row, index) => {
-    const m = row as ApiMember;
-    const fullName =
-      [m.first_name, m.last_name].filter(Boolean).join(" ").trim() ||
-      m.nickname?.trim() ||
-      "Member";
+    const m = row as Record<string, unknown>;
+    const user =
+      m.user && typeof m.user === "object" ? (m.user as Record<string, unknown>) : null;
+    const roleRaw = m.role ?? user?.role;
     const role =
-      m.role === "owner" || m.role === "admin" || m.role === "moderator" || m.role === "member"
-        ? m.role
+      roleRaw === "owner" ||
+      roleRaw === "admin" ||
+      roleRaw === "moderator" ||
+      roleRaw === "member"
+        ? roleRaw
         : "member";
+    const statusRaw = m.status ?? user?.status;
     const status =
-      m.status === "pending" ||
-      m.status === "active" ||
-      m.status === "rejected" ||
-      m.status === "banned"
-        ? m.status
+      statusRaw === "pending" ||
+      statusRaw === "active" ||
+      statusRaw === "rejected" ||
+      statusRaw === "banned"
+        ? statusRaw
         : "active";
+    const userId = String(m.user_id ?? user?.id ?? m.id ?? index);
+    const nickname =
+      (typeof user?.nickname === "string" ? user.nickname : null) ??
+      (typeof m.nickname === "string" ? m.nickname : null);
 
     return {
-      id: m.id ?? m.user_id ?? `member-${index}`,
-      userId: String(m.user_id ?? m.id ?? index),
-      fullName,
-      username: m.nickname ?? null,
-      avatarUrl: m.photo ?? null,
+      id: String(m.id ?? m.user_id ?? user?.id ?? `member-${index}`),
+      userId,
+      fullName: memberDisplayNameFromApi(row),
+      username: nickname?.trim() && nickname !== "undefined" ? nickname.trim() : null,
+      avatarUrl: memberPhotoFromApi(row),
       role,
       status,
-      joinedAt: m.joined_at ?? new Date().toISOString(),
+      joinedAt:
+        (typeof m.joined_at === "string" && m.joined_at) ||
+        (typeof user?.joined_at === "string" && user.joined_at) ||
+        new Date().toISOString(),
     } satisfies CommunityMemberRow;
   });
 
@@ -282,6 +311,7 @@ type ApiJoinRequestUser = {
   last_name?: string;
   nickname?: string | null;
   photo?: string | null;
+  email?: string;
 };
 
 type ApiJoinRequest = {
@@ -306,19 +336,23 @@ export async function getCommunityJoinRequests(
     .filter((row) => row.request_type === "community" || !row.request_type)
     .map((row, index) => {
       const user = row.user;
-      const fullName =
-        user &&
-        [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
       return {
         id: row.id ?? `request-${index}`,
         userId: user?.id != null ? String(user.id) : `user-${index}`,
-        fullName: fullName || user?.nickname?.trim() || "Member",
-        username: user?.nickname?.trim() || null,
+        fullName: memberDisplayNameFromApi({ user: row.user }),
+        username: (() => {
+          const nick = user?.nickname?.trim();
+          if (!nick || nick === "undefined") return null;
+          return nick;
+        })(),
         avatarUrl: user?.photo ?? null,
         message: row.message?.trim() || null,
         createdAt: row.created_at ?? new Date().toISOString(),
       } satisfies CommunityJoinRequestRow;
-    });
+    })
+    .sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
 }
 
 export async function findCommunityInUserList(

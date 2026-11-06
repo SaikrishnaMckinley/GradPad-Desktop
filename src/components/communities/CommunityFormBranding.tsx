@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, ImageIcon } from "lucide-react";
+import { Camera } from "lucide-react";
 import { CommunityCoverImage } from "@/components/communities/CommunityCoverImage";
 import { CommunityMark } from "@/components/layout/CommunityMark";
 import { Button } from "@/components/ui/button";
@@ -85,7 +85,7 @@ export function CommunityFormBranding({
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-2 bg-page-secondary">
-            <ImageIcon className="h-8 w-8 text-muted-foreground/70" strokeWidth={1.5} />
+            <span className="text-2xl font-bold text-muted-foreground/80">{initials}</span>
             <span className="text-sm text-muted-foreground">Add a cover image</span>
           </div>
         )}

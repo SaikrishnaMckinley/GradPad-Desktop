@@ -63,44 +63,40 @@ export function CommunityDetailDemo({ slug = DEV_ACTIVE_COMMUNITY.slug }: Commun
           />
         </div>
         <div className="relative px-5 pb-6 pt-0 md:px-8">
-          <div className="-mt-10 flex gap-4">
-            <CommunityMark
-              name={community.name}
-              initials={community.initials}
-              accentColor={community.accentColor}
-              logoUrl={community.logoUrl}
-              shape="rounded"
-              size="lg"
-              className="h-20 w-20 shrink-0 text-xl ring-4 ring-card"
-            />
-            <div className="min-w-0 flex-1 pt-12 md:pt-10">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h1 className="text-2xl font-semibold">{community.name}</h1>
-                  <p className="text-sm text-muted-foreground">
-                    {DEMO_LOCATIONS[community.slug] ?? "United States"}
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-1">
-                  <button
-                    type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-page-secondary"
-                    aria-label="Share community"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-page-secondary"
-                    aria-label="More options"
-                  >
-                    <MoreHorizontal className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
+          <CommunityMark
+            name={community.name}
+            initials={community.initials}
+            accentColor={community.accentColor}
+            logoUrl={community.logoUrl}
+            shape="rounded"
+            size="lg"
+            className="-mt-10 h-20 w-20 shrink-0 text-xl ring-4 ring-card"
+          />
+          <div className="absolute right-4 top-14 z-10 flex shrink-0 gap-1 md:right-8 md:top-12">
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-page-secondary"
+              aria-label="Share community"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-page-secondary"
+              aria-label="More options"
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
           </div>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">{about}</p>
+          <div className="mt-4 min-w-0 pr-14 md:pr-16">
+            <h1 className="text-2xl font-semibold">{community.name}</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {DEMO_LOCATIONS[community.slug] ?? "United States"}
+            </p>
+          </div>
+          <p className="mt-4 w-full text-justify text-sm leading-relaxed text-muted-foreground [text-align-last:justify]">
+            {about}
+          </p>
           <div className="mt-4 flex items-center">
             <div className="flex -space-x-2">
               {["PJ", "EW", "MC", "RD"].map((initials) => (

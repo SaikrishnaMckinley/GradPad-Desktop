@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, History } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils/cn";
 import { DonationFundPicker } from "@/components/donations/DonationFundPicker";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card } from "@/components/ui/card";
@@ -35,21 +37,35 @@ export default async function CommunityDonatePage({ params }: Props) {
   }
 
   return (
-    <PageContainer className="max-w-4xl">
-      <div className="mb-6 flex items-center gap-3">
-        <Link
-          href={`/communities/${community.slug}`}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border hover:bg-page-secondary"
-          aria-label="Back to community"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Make a donation</h1>
-          <p className="text-sm text-muted-foreground">
-            Support programs that matter to {community.name}.
-          </p>
+    <PageContainer className="max-w-5xl">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <Link
+            href={`/communities/${community.slug}`}
+            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card hover:bg-primary-light"
+            aria-label="Back to community"
+          >
+            <ChevronLeft className="h-5 w-5 text-primary" />
+          </Link>
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+              Make a Donation
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Support the programs that matter most to your alumni community.
+            </p>
+          </div>
         </div>
+        <Link
+          href={`/communities/${community.id}`}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "hidden shrink-0 gap-1.5 border-primary-border text-primary hover:bg-primary-light sm:inline-flex",
+          )}
+        >
+          <History className="h-4 w-4" aria-hidden />
+          History
+        </Link>
       </div>
 
       {!payload.available ? (

@@ -42,17 +42,19 @@ export default async function CommunityDonateFundPage({ params }: Props) {
 
   return (
     <PageContainer className="max-w-5xl">
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-8 flex items-start gap-3">
         <Link
           href={`/communities/${community.id}/donate`}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border hover:bg-page-secondary"
-          aria-label="Back"
+          className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card shadow-sm hover:bg-page-secondary"
+          aria-label="Back to fund selection"
         >
           <ChevronLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Make a donation</h1>
-          <p className="text-sm text-muted-foreground">{community.name}</p>
+          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Complete your gift</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {payload.fund.name} · {community.name}
+          </p>
         </div>
       </div>
 

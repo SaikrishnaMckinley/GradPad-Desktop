@@ -71,9 +71,9 @@ export function CommunityDemoScreen({ slug = DEV_ACTIVE_COMMUNITY.slug }: Props)
           },
         ]}
         membersPreview={[
-          { fullName: "PJ", avatarUrl: null },
-          { fullName: "EW", avatarUrl: null },
-          { fullName: "MC", avatarUrl: null },
+          { id: "demo-1", fullName: "PJ", avatarUrl: null },
+          { id: "demo-2", fullName: "EW", avatarUrl: null },
+          { id: "demo-3", fullName: "MC", avatarUrl: null },
         ]}
         canManage
         isMember

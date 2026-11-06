@@ -1,4 +1,8 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { displayInitials, isUsableImageUrl } from "@/lib/utils/initials";
 import { cn } from "@/lib/utils/cn";
 
 type CommunityMarkProps = {
@@ -20,6 +24,12 @@ export function CommunityMark({
   shape = "circle",
   className,
 }: CommunityMarkProps) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [logoUrl]);
+
   const dim =
     size === "sm"
       ? "h-9 w-9 text-xs"
@@ -27,8 +37,10 @@ export function CommunityMark({
         ? "h-12 w-12 text-base"
         : "h-10 w-10 text-sm";
   const radius = shape === "rounded" ? "rounded-2xl" : "rounded-full";
+  const label = (initials || displayInitials(name, 2)).slice(0, 2).toUpperCase();
+  const showLogo = isUsableImageUrl(logoUrl) && !failed;
 
-  if (logoUrl) {
+  if (showLogo) {
     return (
       <div
         className={cn(
@@ -41,10 +53,12 @@ export function CommunityMark({
       >
         <Image
           src={logoUrl}
-          alt=""
+          alt={name}
           fill
+          unoptimized
           className="object-contain p-1"
           sizes={size === "lg" ? "48px" : size === "sm" ? "36px" : "40px"}
+          onError={() => setFailed(true)}
         />
       </div>
     );
@@ -60,9 +74,10 @@ export function CommunityMark({
       )}
       style={{ backgroundColor: accentColor }}
       title={name}
-      aria-hidden
+      role="img"
+      aria-label={name}
     >
-      {initials.slice(0, 1)}
+      {label.slice(0, 1)}
     </div>
   );
 }

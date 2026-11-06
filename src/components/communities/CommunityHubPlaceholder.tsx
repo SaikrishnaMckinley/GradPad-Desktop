@@ -40,21 +40,19 @@ export function CommunityHubPlaceholder({ routeKey }: Props) {
         <div className="relative h-44 md:h-52">
           <CommunityCoverImage name={name} slug={routeKey} coverImageUrl={null} />
         </div>
-        <div className="relative px-5 pb-6 md:px-8">
-          <div className="-mt-10 flex gap-4">
-            <CommunityMark
-              name={name}
-              initials={initials}
-              accentColor={accent}
-              logoUrl={membership?.logoUrl}
-              shape="rounded"
-              size="lg"
-              className="h-20 w-20 shrink-0 text-xl ring-4 ring-card"
-            />
-            <div className="min-w-0 flex-1 pt-12 md:pt-10">
-              <h1 className="text-2xl font-semibold">{name}</h1>
-              <p className="text-sm text-muted-foreground">Loading community…</p>
-            </div>
+        <div className="relative px-5 pb-6 pt-0 md:px-8">
+          <CommunityMark
+            name={name}
+            initials={initials}
+            accentColor={accent}
+            logoUrl={membership?.logoUrl}
+            shape="rounded"
+            size="lg"
+            className="-mt-10 h-20 w-20 shrink-0 text-xl ring-4 ring-card"
+          />
+          <div className="mt-4 min-w-0">
+            <h1 className="text-2xl font-semibold">{name}</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">Loading community…</p>
           </div>
         </div>
       </div>

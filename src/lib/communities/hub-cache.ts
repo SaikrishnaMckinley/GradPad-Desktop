@@ -25,7 +25,7 @@ export type CommunityHubPayload = {
     createdAt: string;
     canEdit?: boolean;
   }[];
-  membersPreview: { fullName: string; avatarUrl: string | null }[];
+  membersPreview: { id: string; fullName: string; avatarUrl: string | null }[];
   canManage: boolean;
   isMember: boolean;
   shellUser: ShellUser;

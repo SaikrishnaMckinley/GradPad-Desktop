@@ -13,8 +13,11 @@ export async function fetchAllCommunitiesRaw() {
   return serverFetchJson<unknown>("community/all/");
 }
 
-export async function fetchCommunityDetailRaw(communityId: string) {
-  return serverFetchJson<ApiCommunityRecord>(`community/${communityId}/`);
+export async function fetchCommunityDetailRaw(
+  communityId: string,
+  options?: { cacheable?: boolean },
+) {
+  return serverFetchJson<ApiCommunityRecord>(`community/${communityId}/`, {}, options);
 }
 
 /** Public preview for share / invite links (gradpad-web `community/open/<id>/`). */
@@ -26,8 +29,11 @@ export async function fetchCommunityChannelsRaw(communityId: string) {
   return serverFetchJson<unknown>(`community/${communityId}/channels/`);
 }
 
-export async function fetchCommunityMembersRaw(communityId: string) {
-  return serverFetchJson<unknown>(`community/${communityId}/members/`);
+export async function fetchCommunityMembersRaw(
+  communityId: string,
+  options?: { cacheable?: boolean },
+) {
+  return serverFetchJson<unknown>(`community/${communityId}/members/`, {}, options);
 }
 
 export async function fetchCommunityJoinRequestsRaw(communityId: string) {

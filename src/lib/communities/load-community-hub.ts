@@ -44,6 +44,7 @@ export async function loadCommunityHub(routeKey: string): Promise<CommunityHubPa
     events,
     posts,
     membersPreview: membersPage.members.map((m) => ({
+      id: m.userId,
       fullName: m.fullName,
       avatarUrl: m.avatarUrl,
     })),
