@@ -30,8 +30,11 @@ export function CommunityHubPlaceholder({ routeKey }: Props) {
   const accent = membership?.accentColor ?? communityAccentColor(routeKey);
 
   return (
+    <div className="flex min-h-0 flex-1 flex-col">
     <PageContainer
       withRightRail
+      unifiedScroll
+      className="min-h-0 flex-1 lg:max-h-[calc(100dvh-3.875rem)] lg:overflow-hidden"
       rightRail={
         <CommunityDetailSidebar user={shellUser} memberships={[]} upcomingEvents={[]} />
       }
@@ -61,5 +64,6 @@ export function CommunityHubPlaceholder({ routeKey }: Props) {
         <div className="h-40 animate-pulse rounded-2xl bg-page-secondary" />
       </div>
     </PageContainer>
+    </div>
   );
 }

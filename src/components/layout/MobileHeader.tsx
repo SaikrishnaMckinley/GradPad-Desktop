@@ -32,7 +32,7 @@ export function MobileHeader({ onMenuOpen, shellUser }: MobileHeaderProps) {
           <Search className="h-5 w-5" />
         </Link>
         <Link
-          href="/notifications"
+          href="/home"
           className="relative flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary"
           aria-label="Notifications"
         >

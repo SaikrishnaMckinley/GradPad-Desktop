@@ -32,7 +32,7 @@ export function AppShell({ children }: AppShellProps) {
           <TopNavigation shellUser={shellUser} communityContext={communityContext} />
         </Suspense>
         <MobileHeader shellUser={shellUser} onMenuOpen={() => setMobileMenuOpen(true)} />
-        <main className="flex-1 pb-20 lg:pb-0">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col pb-20 lg:pb-0">{children}</main>
         <Suspense fallback={null}>
           <MobileNavigation />
         </Suspense>
