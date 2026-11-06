@@ -1,4 +1,8 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { displayInitials, isUsableImageUrl } from "@/lib/utils/initials";
 import { cn } from "@/lib/utils/cn";
 
 type AvatarProps = {
@@ -24,17 +28,25 @@ export function Avatar({
   size = "md",
   className,
 }: AvatarProps) {
-  const initials = fallback.slice(0, 2).toUpperCase();
+  const [failed, setFailed] = useState(false);
+  const initials = displayInitials(fallback || alt);
+  const showImage = isUsableImageUrl(src) && !failed;
 
-  if (src) {
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  if (showImage) {
     return (
       <Image
         src={src}
-        alt={alt}
-        width={48}
-        height={48}
+        alt={alt || fallback || "Profile photo"}
+        width={64}
+        height={64}
+        unoptimized
+        onError={() => setFailed(true)}
         className={cn(
-          "rounded-full object-cover ring-2 ring-card",
+          "shrink-0 rounded-full object-cover ring-2 ring-card",
           sizeMap[size],
           className,
         )}
@@ -49,9 +61,11 @@ export function Avatar({
         sizeMap[size],
         className,
       )}
-      aria-hidden={alt ? undefined : true}
+      role="img"
+      aria-label={alt || fallback || "Profile"}
+      title={alt || fallback}
     >
-      <span aria-label={alt}>{initials}</span>
+      {initials}
     </div>
   );
 }

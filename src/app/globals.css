@@ -66,4 +66,18 @@
   body {
     @apply min-h-full bg-page font-sans text-foreground antialiased;
   }
+
+  /* Browsers paint autofill with a default blue/yellow — keep inputs on card white. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  input:autofill,
+  input:autofill:hover,
+  input:autofill:focus {
+    -webkit-text-fill-color: var(--foreground) !important;
+    caret-color: var(--foreground);
+    box-shadow: 0 0 0 1000px var(--card) inset !important;
+    transition: background-color 99999s ease-out;
+  }
 }

@@ -13,7 +13,11 @@ function isPublicRoute(pathname: string) {
     return true;
   }
   // Guest landing from community share links (gradpad-web `/communities/:id/community-invite`).
-  return /^\/communities\/[^/]+\/community-invite\/?$/.test(pathname);
+  if (/^\/communities\/[^/]+\/community-invite\/?$/.test(pathname)) {
+    return true;
+  }
+  // Public event invite / guest RSVP (gradpad-web `/events/:id/event-invite`).
+  return /^\/events\/[^/]+\/event-invite\/?$/.test(pathname);
 }
 
 function isDemoStaticUi() {
@@ -39,13 +43,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  if (
-    !demo &&
-    !authed &&
-    !isAuthRoute(pathname) &&
-    !isPublicRoute(pathname) &&
-    pathname !== "/"
-  ) {
+  if (!demo && !authed && !isAuthRoute(pathname) && !isPublicRoute(pathname) && pathname !== "/") {
+    const eventDetailMatch = pathname.match(/^\/events\/([^/]+)\/?$/);
+    if (eventDetailMatch?.[1]) {
+      return NextResponse.redirect(
+        new URL(`/events/${eventDetailMatch[1]}/event-invite`, request.url),
+      );
+    }
+
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
