@@ -7,7 +7,7 @@ import { HomeRightSidebar } from "@/components/home/HomeRightSidebar";
 import { PostCard } from "@/components/home/PostCard";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { isDemoStaticUi } from "@/lib/demo-mode";
-import { getUpcomingEventsPreview } from "@/lib/events/queries";
+import { getJoinedEvents } from "@/lib/events/queries";
 import { loadHomeFeed } from "@/lib/posts/load-home-feed";
 
 export const metadata = {
@@ -23,12 +23,12 @@ type Props = {
 async function HomePageContent({ searchParams }: Props) {
   const { community } = await searchParams;
 
-  const [feed, upcomingEvents] = await Promise.all([
+  const [feed, joinedEvents] = await Promise.all([
     loadHomeFeed(typeof community === "string" ? community : null),
-    getUpcomingEventsPreview(2),
+    getJoinedEvents(),
   ]);
 
-  return <HomePageClient feed={feed} upcomingEvents={upcomingEvents} />;
+  return <HomePageClient feed={feed} joinedEvents={joinedEvents} />;
 }
 
 export default async function HomePage(props: Props) {

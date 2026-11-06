@@ -53,7 +53,26 @@ export async function stagingUnlikePostRaw(postId: string, category = "like") {
 export async function stagingAddPostCommentRaw(postId: string, commentText: string) {
   const form = new FormData();
   form.append("comment", commentText);
+  /** gradpad-web sends title with the same text — API requires it. */
+  form.append("title", commentText);
   return serverFetchForm<unknown>(`posts/${postId}/comment/`, "POST", form);
+}
+
+export async function stagingEditPostCommentRaw(
+  postId: string,
+  commentId: string,
+  commentText: string,
+) {
+  return serverFetchJson<unknown>(`posts/${postId}/comment/${commentId}/`, {
+    method: "PATCH",
+    body: JSON.stringify({ title: commentText }),
+  });
+}
+
+export async function stagingDeletePostCommentRaw(postId: string, commentId: string) {
+  return serverFetchJson<unknown>(`posts/${postId}/comment/${commentId}/`, {
+    method: "DELETE",
+  });
 }
 
 export async function stagingSharePostRaw(postId: string, levelCount: number) {

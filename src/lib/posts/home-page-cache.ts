@@ -1,12 +1,12 @@
 import type { HomeFeedPayload } from "@/lib/posts/load-home-feed";
-import type { EventRailItem } from "@/types/events";
+import type { EventListItem } from "@/types/events";
 
 export type HomePageSnapshot = {
   feed: HomeFeedPayload;
-  upcomingEvents: EventRailItem[];
+  joinedEvents: EventListItem[];
 };
 
-const STORAGE_KEY = "gradpad:home-page:v1";
+const STORAGE_KEY = "gradpad:home-page:v2";
 const MAX_AGE_MS = 1000 * 60 * 15;
 
 let memory: { snapshot: HomePageSnapshot; at: number } | null = null;

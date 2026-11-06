@@ -58,7 +58,8 @@ export async function loadHomeFeed(queryCommunityId: string | null): Promise<Hom
   }
 
   const posts = await getCommunityFeedPosts(activeCommunity.id, activeCommunity.name, 50, {
-    cacheable: true,
+    cacheable: false,
+    viewerUserId: session?.id ?? null,
   });
 
   return { activeCommunity, memberships, posts };

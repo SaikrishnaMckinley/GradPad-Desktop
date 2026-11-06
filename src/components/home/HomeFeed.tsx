@@ -62,6 +62,7 @@ export function HomeFeed({ feed }: Props) {
                   canEdit={post.canEdit}
                   likesCount={post.likesCount}
                   likedByMe={post.likedByMe}
+                  reactionType={post.reactionType}
                   commentAllow={post.commentAllow}
                   comments={post.comments}
                   shareCount={post.shareCount}

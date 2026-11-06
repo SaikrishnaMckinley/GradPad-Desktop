@@ -7,6 +7,8 @@ export type PostCommentRow = {
   createdAt: string;
   authorName: string;
   authorAvatarUrl: string | null;
+  authorUserId?: string | null;
+  canEdit?: boolean;
 };
 
 export type FeedPostRow = {
@@ -23,6 +25,7 @@ export type FeedPostRow = {
   canEdit: boolean;
   likesCount: number;
   likedByMe: boolean;
+  reactionType: string | null;
   commentAllow: boolean;
   comments: PostCommentRow[];
   shareCount: number;
@@ -30,6 +33,7 @@ export type FeedPostRow = {
 
 type ApiOwner = {
   id?: string;
+  email?: string;
   first_name?: string;
   last_name?: string;
   full_name?: string;
@@ -37,10 +41,24 @@ type ApiOwner = {
   photo?: string | null;
 };
 
+function parseIsOwner(value: unknown): boolean {
+  return value === true || value === 1 || value === "true";
+}
+
+function displayNameFromPerson(person: ApiOwner): string | null {
+  const name =
+    person.full_name?.trim() ||
+    [person.first_name, person.last_name].filter(Boolean).join(" ").trim() ||
+    person.nickname?.trim() ||
+    person.email?.split("@")[0]?.trim();
+  return name || null;
+}
+
 type ApiChildPost = {
   id: string;
   title?: string | null;
   created_at?: string;
+  is_owner?: boolean;
   owner?: ApiOwner | ApiOwner[];
 };
 
@@ -56,6 +74,7 @@ type ApiPost = {
   media?: { file?: string | null; media_type?: string | null }[];
   likes_count?: number;
   likedby_me?: boolean;
+  reaction_type?: string | null;
   comment_allow?: boolean;
   level_count?: number;
   child_posts?: ApiChildPost[] | null;
@@ -80,10 +99,7 @@ function resolveAuthor(post: ApiPost): { authorName: string; authorAvatarUrl: st
   const candidates = [owner, post.author, post.user].filter(Boolean) as ApiOwner[];
 
   for (const person of candidates) {
-    const name =
-      person.full_name?.trim() ||
-      [person.first_name, person.last_name].filter(Boolean).join(" ").trim() ||
-      person.nickname?.trim();
+    const name = displayNameFromPerson(person);
     if (name) {
       return { authorName: name, authorAvatarUrl: person.photo ?? null };
     }
@@ -92,38 +108,60 @@ function resolveAuthor(post: ApiPost): { authorName: string; authorAvatarUrl: st
   return { authorName: "Member", authorAvatarUrl: null };
 }
 
+function ownersFromField(owner: ApiChildPost["owner"]): ApiOwner[] {
+  if (!owner) return [];
+  return Array.isArray(owner) ? owner : [owner];
+}
+
 function authorFromOwner(owner: ApiChildPost["owner"]): {
   authorName: string;
   authorAvatarUrl: string | null;
+  authorUserId: string | null;
 } {
-  const raw = owner;
-  const person = Array.isArray(raw) ? raw[0] : raw;
-  if (!person) return { authorName: "Member", authorAvatarUrl: null };
-  const name =
-    person.full_name?.trim() ||
-    [person.first_name, person.last_name].filter(Boolean).join(" ").trim() ||
-    person.nickname?.trim();
+  for (const person of ownersFromField(owner)) {
+    const name = displayNameFromPerson(person);
+    if (name) {
+      return {
+        authorName: name,
+        authorAvatarUrl: person.photo ?? null,
+        authorUserId: person.id != null ? String(person.id) : null,
+      };
+    }
+  }
+  const first = ownersFromField(owner)[0];
   return {
-    authorName: name || "Member",
-    authorAvatarUrl: person.photo ?? null,
+    authorName: "Member",
+    authorAvatarUrl: first?.photo ?? null,
+    authorUserId: first?.id != null ? String(first.id) : null,
   };
 }
 
-function mapComments(childPosts: ApiChildPost[] | null | undefined): PostCommentRow[] {
+function mapComments(
+  childPosts: ApiChildPost[] | null | undefined,
+  viewerUserId?: string | null,
+): PostCommentRow[] {
   if (!childPosts?.length) return [];
   return childPosts.map((row) => {
-    const { authorName, authorAvatarUrl } = authorFromOwner(row.owner);
+    const author = authorFromOwner(row.owner);
+    const ownedByViewer =
+      Boolean(viewerUserId && author.authorUserId && author.authorUserId === viewerUserId);
     return {
       id: row.id,
       text: row.title?.trim() ?? "",
       createdAt: row.created_at ?? new Date().toISOString(),
-      authorName,
-      authorAvatarUrl,
+      authorName: author.authorName,
+      authorAvatarUrl: author.authorAvatarUrl,
+      authorUserId: author.authorUserId,
+      canEdit: parseIsOwner(row.is_owner) || ownedByViewer,
     };
   });
 }
 
-function mapSinglePost(row: unknown, fallbackCommunityName?: string | null): FeedPostRow {
+function mapSinglePost(
+  row: unknown,
+  fallbackCommunityName?: string | null,
+  viewerUserId?: string | null,
+): FeedPostRow {
   const post = row as ApiPost;
   const { authorName, authorAvatarUrl } = resolveAuthor(post);
   const content = post.content ?? post.comment ?? "";
@@ -148,8 +186,9 @@ function mapSinglePost(row: unknown, fallbackCommunityName?: string | null): Fee
     canEdit: Boolean(post.is_owner),
     likesCount: Number(post.likes_count ?? 0),
     likedByMe: Boolean(post.likedby_me),
+    reactionType: post.reaction_type?.trim() ?? null,
     commentAllow: post.comment_allow !== false,
-    comments: mapComments(post.child_posts),
+    comments: mapComments(post.child_posts, viewerUserId),
     shareCount: Number(post.level_count ?? 0),
   };
 }
@@ -157,6 +196,9 @@ function mapSinglePost(row: unknown, fallbackCommunityName?: string | null): Fee
 export function mapPostsResponse(
   data: unknown,
   fallbackCommunityName?: string | null,
+  viewerUserId?: string | null,
 ): FeedPostRow[] {
-  return unwrapList(data).map((row) => mapSinglePost(row, fallbackCommunityName));
+  return unwrapList(data).map((row) =>
+    mapSinglePost(row, fallbackCommunityName, viewerUserId),
+  );
 }

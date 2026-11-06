@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { PostMediaItem } from "@/lib/posts/post-media";
 import { cn } from "@/lib/utils/cn";
 
@@ -22,8 +23,9 @@ function MediaTile({
   overlay?: string;
   onOpen?: (index: number) => void;
 }) {
+  const [failed, setFailed] = useState(false);
   const isVideo = item.type.startsWith("video");
-  const clickable = Boolean(onOpen) && !isVideo;
+  const clickable = Boolean(onOpen) && !isVideo && !failed;
 
   return (
     <button
@@ -37,13 +39,27 @@ function MediaTile({
       onClick={clickable ? () => onOpen?.(index) : undefined}
       disabled={!clickable}
     >
-      {isVideo ? (
-        <video src={item.url} controls className="h-full w-full object-contain" />
+      {failed ? (
+        <div className="flex h-full min-h-[120px] w-full items-center justify-center bg-page-secondary px-3 text-center text-sm font-medium text-muted-foreground">
+          Media unavailable
+        </div>
+      ) : isVideo ? (
+        <video
+          src={item.url}
+          controls
+          className="h-full w-full object-contain"
+          onError={() => setFailed(true)}
+        />
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.url} alt="" className="h-full w-full object-cover" />
+        <img
+          src={item.url}
+          alt="Post media"
+          className="h-full w-full object-cover"
+          onError={() => setFailed(true)}
+        />
       )}
-      {overlay ? (
+      {overlay && !failed ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black/55 text-2xl font-semibold text-white">
           {overlay}
         </div>

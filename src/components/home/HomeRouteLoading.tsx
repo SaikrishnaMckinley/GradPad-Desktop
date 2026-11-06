@@ -29,7 +29,7 @@ export function HomeRouteLoading() {
   const cached = readHomePageCache();
   if (cached) {
     return (
-      <HomePageClient feed={cached.feed} upcomingEvents={cached.upcomingEvents} />
+      <HomePageClient feed={cached.feed} joinedEvents={cached.joinedEvents} />
     );
   }
   return <HomeSkeleton />;

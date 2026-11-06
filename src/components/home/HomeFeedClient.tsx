@@ -211,6 +211,7 @@ export function HomeFeedClient({ initial }: Props) {
                   canEdit={post.canEdit}
                   likesCount={post.likesCount}
                   likedByMe={post.likedByMe}
+                  reactionType={post.reactionType}
                   commentAllow={post.commentAllow}
                   comments={post.comments}
                   shareCount={post.shareCount}
