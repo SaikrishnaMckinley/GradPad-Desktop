@@ -6,7 +6,7 @@ import { EventManagePageFallback } from "@/components/events/EventManagePageFall
 import { PageContainer } from "@/components/layout/PageContainer";
 import { buttonVariants } from "@/components/ui/button";
 import { isDemoStaticUi } from "@/lib/demo-mode";
-import { fetchEventDetailRaw } from "@/lib/api/events";
+import { getEventDetail } from "@/lib/events/queries";
 import { cn } from "@/lib/utils/cn";
 import { ChevronLeft } from "lucide-react";
 
@@ -18,11 +18,14 @@ async function SelfCheckInContent({ params }: Props) {
   if (isDemoStaticUi()) redirect("/events");
 
   const { eventId } = await params;
-  const result = await fetchEventDetailRaw(eventId);
-  if (!result.ok) redirect("/events");
+  const event = await getEventDetail(eventId);
+  if (!event) redirect("/events");
 
-  const title =
-    (result.data as { title?: string })?.title ?? "Event";
+  if (event.isOwner) {
+    redirect(`/events/${eventId}/manage/check-in`);
+  }
+
+  const title = event.title;
 
   return (
   <div className="w-full max-w-lg space-y-6">

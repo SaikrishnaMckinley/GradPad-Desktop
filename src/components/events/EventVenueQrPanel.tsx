@@ -25,7 +25,14 @@ export function EventVenueQrPanel({ eventId }: Props) {
         const { data } = await fetchEventVenueCheckInQr(eventId);
         if (cancelled) return;
         setQrCode(data.qr_code ?? null);
-        setHint(data.self_checkin?.message ?? null);
+        const sc = data.self_checkin;
+        setHint(
+          sc?.is_open
+            ? sc?.message ?? null
+            : sc?.message
+              ? `${sc.message} Attendees can scan when check-in opens.`
+              : null,
+        );
       } catch {
         if (!cancelled) setError("Could not load venue QR.");
       } finally {

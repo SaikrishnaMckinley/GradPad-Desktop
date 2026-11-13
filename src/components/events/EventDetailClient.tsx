@@ -230,6 +230,15 @@ export function EventDetailClient({
                 </p>
                 <div className="mt-5 flex flex-col gap-2">
                   <Link
+                    href={`/events/${event.id}/manage/check-in`}
+                    className={cn(
+                      buttonVariants(),
+                      "w-full bg-success text-white hover:bg-success/90",
+                    )}
+                  >
+                    Venue check-in QR
+                  </Link>
+                  <Link
                     href={`/events/${event.id}/edit`}
                     className={cn(buttonVariants({ variant: "outline" }), "w-full")}
                   >
