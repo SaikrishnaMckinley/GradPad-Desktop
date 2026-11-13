@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils/cn";
 import { fetchEventVenueCheckInQr } from "@/lib/api/event-self-checkin-client";
 
 type Props = {
@@ -56,11 +57,13 @@ export function EventVenueQrPanel({ eventId }: Props) {
       )}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       {qrCode && (
-        <Button type="button" variant="outline" className="w-full" asChild>
-          <a href={qrCode} download={`event-${eventId}-check-in-qr.png`}>
-            Download QR
-          </a>
-        </Button>
+        <a
+          href={qrCode}
+          download={`event-${eventId}-check-in-qr.png`}
+          className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+        >
+          Download QR
+        </a>
       )}
     </Card>
   );

@@ -67,14 +67,16 @@ export function EventSelfCheckInPanel({ eventId, onCheckedIn }: Props) {
         onCheckedIn?.();
         await refreshStatus();
       } catch (err: unknown) {
-        const apiErr =
+        const raw =
           err &&
           typeof err === "object" &&
-          "response" in err &&
-          (err as { response?: { data?: { error?: string } } }).response?.data
-            ?.error;
-        setError(apiErr ?? "Check-in failed.");
-        throw new Error(apiErr ?? "Check-in failed.");
+          "response" in err
+            ? (err as { response?: { data?: { error?: unknown } } }).response?.data
+                ?.error
+            : undefined;
+        const apiErr = typeof raw === "string" && raw.trim() ? raw : "Check-in failed.";
+        setError(apiErr);
+        throw new Error(apiErr);
       }
     },
     [eventId, onCheckedIn, refreshStatus],
