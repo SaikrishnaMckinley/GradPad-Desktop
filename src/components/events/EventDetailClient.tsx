@@ -300,9 +300,20 @@ export function EventDetailClient({
                       Registered
                     </span>
                     <p className="text-sm text-muted-foreground">
-                      You&apos;re on the guest list. Show your registration QR at check-in.
+                      Scan the venue check-in QR when you arrive, or show your ticket QR to staff.
                     </p>
-                    <Button type="button" className="w-full" onClick={() => setViewTicketOpen(true)}>
+                    <Link
+                      href={`/events/${event.id}/self-check-in`}
+                      className={cn(buttonVariants(), "w-full")}
+                    >
+                      Scan to check in
+                    </Link>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setViewTicketOpen(true)}
+                    >
                       View ticket
                     </Button>
                   </div>

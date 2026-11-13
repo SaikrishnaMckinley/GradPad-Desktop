@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ProfileAvatarLink } from "@/components/profile/ProfileAvatarLink";
 import { EventCheckInResultDialog } from "@/components/events/EventCheckInResultDialog";
+import { EventVenueQrPanel } from "@/components/events/EventVenueQrPanel";
 import {
   loadEventAttendeesSummary,
   manualCheckInAction,
@@ -153,6 +154,8 @@ export function EventCheckInClient({ eventId, title, initialSummary }: Props) {
           </Card>
         </div>
       ) : null}
+
+      <EventVenueQrPanel eventId={eventId} />
 
       <Card className="space-y-4 p-5 shadow-card md:p-6">
         <div>
