@@ -53,9 +53,11 @@ export function EventDetailClient({
   initialRegistration = null,
 }: Props) {
   const router = useRouter();
-  const [registration, setRegistration] = useState<EventRegistrationTicketView | null>(
-    () => initialRegistration ?? readRegistrationStatusCache(event.id),
-  );
+  const [registration, setRegistration] = useState<EventRegistrationTicketView | null>(() => {
+    if (event.isOwner) return null;
+    return initialRegistration ?? readRegistrationStatusCache(event.id);
+  });
+  const selfCheckInAvailable = event.enableSelfCheckin !== false;
   const freeTicketId =
     event.tickets.find((t) => t.isFree)?.id ?? event.tickets[0]?.id ?? "";
   const { firstName, lastName } = splitViewerName(viewerName);
@@ -116,14 +118,19 @@ export function EventDetailClient({
   }, [event]);
 
   useEffect(() => {
+    if (event.isOwner) {
+      setRegistration(null);
+      writeRegistrationStatusCache(event.id, null);
+      return;
+    }
     if (initialRegistration) {
       setRegistration(initialRegistration);
       writeRegistrationStatusCache(event.id, initialRegistration);
     }
-  }, [event.id, initialRegistration]);
+  }, [event.id, event.isOwner, initialRegistration, viewerEmail]);
 
   useEffect(() => {
-    if (!event.isAttendee) return;
+    if (event.isOwner || !event.isAttendee) return;
     let cancelled = false;
     void loadEventRegistrationStatus(event.id).then((result) => {
       if (cancelled || !result.registration) return;
@@ -133,7 +140,7 @@ export function EventDetailClient({
     return () => {
       cancelled = true;
     };
-  }, [event.id, event.isAttendee]);
+  }, [event.id, event.isAttendee, event.isOwner, viewerEmail]);
 
   useEffect(() => {
     if (state?.error) toast.error(state.error);
@@ -226,29 +233,31 @@ export function EventDetailClient({
                   You’re hosting
                 </span>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Update details, run check-in, and view live statistics for this event.
+                  Venue QR, guest scanner, and live stats live under Manage — keep this page
+                  focused on your ticket and event details.
                 </p>
                 <div className="mt-5 flex flex-col gap-2">
-                  <Link
-                    href={`/events/${event.id}/manage/check-in`}
-                    className={cn(
-                      buttonVariants(),
-                      "w-full bg-success text-white hover:bg-success/90",
-                    )}
-                  >
-                    Venue check-in QR
-                  </Link>
-                  <Link
-                    href={`/events/${event.id}/edit`}
-                    className={cn(buttonVariants({ variant: "outline" }), "w-full")}
-                  >
-                    Update event
-                  </Link>
+                  {!eventHasEnded ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setViewTicketOpen(true)}
+                    >
+                      View ticket
+                    </Button>
+                  ) : null}
                   <Link
                     href={`/events/${event.id}/manage`}
                     className={cn(buttonVariants(), "w-full")}
                   >
                     Manage event
+                  </Link>
+                  <Link
+                    href={`/events/${event.id}/edit`}
+                    className={cn(buttonVariants({ variant: "ghost" }), "w-full text-muted-foreground")}
+                  >
+                    Update event
                   </Link>
                 </div>
               </>
@@ -309,17 +318,21 @@ export function EventDetailClient({
                       Registered
                     </span>
                     <p className="text-sm text-muted-foreground">
-                      Scan the venue check-in QR when you arrive, or show your ticket QR to staff.
+                      {selfCheckInAvailable
+                        ? "Scan the venue check-in QR when you arrive, or show your ticket QR to staff."
+                        : "Show your ticket QR to staff at the door. Self check-in is off for this event."}
                     </p>
-                    <Link
-                      href={`/events/${event.id}/self-check-in`}
-                      className={cn(buttonVariants(), "w-full")}
-                    >
-                      Scan to check in
-                    </Link>
+                    {selfCheckInAvailable ? (
+                      <Link
+                        href={`/events/${event.id}/self-check-in`}
+                        className={cn(buttonVariants(), "w-full")}
+                      >
+                        Scan to check in
+                      </Link>
+                    ) : null}
                     <Button
                       type="button"
-                      variant="outline"
+                      variant={selfCheckInAvailable ? "outline" : "default"}
                       className="w-full"
                       onClick={() => setViewTicketOpen(true)}
                     >

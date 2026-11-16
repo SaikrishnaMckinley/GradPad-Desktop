@@ -27,6 +27,7 @@ export type EventDetailViewModel = EventListItem & {
   hostAvatarUrl: string | null;
   hostUserId: string | null;
   platformFeeLabel: string | null;
+  enableSelfCheckin: boolean;
 };
 
 type ApiTicket = {
@@ -129,6 +130,7 @@ export function mapEventDetail(data: unknown): EventDetailViewModel | null {
       typeof row.platform_fee === "string" && row.platform_fee.trim()
         ? row.platform_fee
         : null,
+    enableSelfCheckin: row.enable_self_checkin !== false,
     isPublic,
     badges: base.badges,
   };

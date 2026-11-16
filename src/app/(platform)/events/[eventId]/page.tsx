@@ -45,6 +45,7 @@ async function EventDetailContent({ params }: Props) {
   return (
     <PageContainer>
       <EventDetailClient
+        key={`${eventId}-${profile.id}`}
         event={event}
         attendees={attendees}
         viewerName={profile.fullName}
